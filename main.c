@@ -1,18 +1,20 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "sort.h"
 
+#define SIZE 15
+
 int main(void) {
-    int arr[7] = {4, 6, 2, 8, 9, 1, 1};
-    process_t* parr[7];
-    for (int i=0; i < 7; i++) {
-        parr[i] = process_init("process", i, arr[i], 2);
-        printf("%d ", parr[i]->time_left);
+    int tls[SIZE] = {1, 6, 12, 8, 12, 1, 1, 9, 12,
+                     12, 5, 7, 10, 12, 1};
+    process_t* parr[SIZE];
+    printf("INIT:\n");
+    for (int i=0; i < SIZE; i++) {
+        parr[i] = process_init("process", i, tls[i], 2);
+        printf("%d %d \n", parr[i]->time_left, parr[i]->requested_time);
     }
-    sort(parr, 7);
-    printf("\nSORTED:\n");
-    for (int i=0; i < 7; i++) {
-        printf("%d ", parr[i]->time_left);
+    sort(parr, SIZE);
+    for (int i=0; i < SIZE; i++) {
+        printf("%d %d \n", parr[i]->time_left, parr[i]->requested_time);
     }
     return 0;
 }

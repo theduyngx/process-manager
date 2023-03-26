@@ -6,6 +6,6 @@
  */
 
 #include "pseudo_process.h"
-#define INSERTION_THRESHOLD 10 // what is the largest array size to use insertion instead of quicksort
+#define INSERTION_THRESHOLD 10         // largest array size to use insertion sort
 
 void sort(process_t* arr[], int size); // sort function prototype
