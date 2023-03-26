@@ -3,16 +3,16 @@
 #include "sort.h"
 
 int main(void) {
-    int size = 4;
-    int *arr = (int *) malloc(sizeof(int) * size);
-    arr[0] = 5; arr[1] = 9; arr[2] = 3; arr[3] = 1; arr[4] = 1;
-    for (int i=0; i <= size; i++) {
-        printf("%d", arr[i]);
+    int arr[7] = {4, 6, 2, 8, 9, 1, 1};
+    process_t* parr[7];
+    for (int i=0; i < 7; i++) {
+        parr[i] = process_init("process", i, arr[i], 2);
+        printf("%d ", parr[i]->time_left);
     }
-    sort(arr, size);
-    printf("\n");
-    for (int i=0; i <= size; i++) {
-        printf("%d", arr[i]);
+    sort(parr, 7);
+    printf("\nSORTED:\n");
+    for (int i=0; i < 7; i++) {
+        printf("%d ", parr[i]->time_left);
     }
     return 0;
 }

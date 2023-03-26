@@ -1,30 +1,28 @@
+/*
+ * Author  : The Duy Nguyen - 1100548
+ * File    : pseudo_process.h
+ * Purpose : Data structures and functions related to handling the pseudo-processes.
+ */
+
 #include <stdlib.h>
+#include "pseudo_process.h"
+#include "assert.h"
 
-enum status {
-    READY,
-    RUNNING,
-    FINISHED
-};
 
-struct process {
-    char *name;
-    int requested_time;
-    int time_left;
-    int memory_requirement;
-    enum status p_status;
-};
-typedef struct process process_t;
-
-void process_init(process_t *p, char *name, int request_time, int est_time, int memory) {
-    p = (process_t *) malloc(sizeof(process_t));
+/* Initialize the process */
+process_t* process_init(char *name, int request_time, int est_time, int memory) {
+    process_t* p = (process_t *) malloc(sizeof(process_t));
     p->name = name;
     p->requested_time = request_time;
     p->time_left = est_time;
     p->memory_requirement = memory;
     p->p_status = READY;
+    assert(p);
+    return p;
 }
 
-int process_terminate(process_t *p) {
-    if (p->p_status != FINISHED) return 1;
+/* Terminate the process */
+void process_terminate(process_t *p) {
     free(p);
+    assert(!p);
 }
