@@ -16,7 +16,7 @@ enum status {
 
 // pseudo-process data structure
 struct process {
-    char *name;
+    const char *name;
     int requested_time;
     int time_left;
     int memory_requirement;
@@ -26,5 +26,5 @@ typedef struct process process_t;
 
 
 /* function prototypes */
-process_t* process_init(char *name, int request_time, int est_time, int memory);
+process_t* process_init(const char *name, int request_time, int est_time, int memory);
 void process_terminate(process_t *p);

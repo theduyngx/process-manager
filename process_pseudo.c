@@ -10,7 +10,7 @@
 
 
 /* Initialize the process */
-process_t* process_init(char *name, int request_time, int est_time, int memory) {
+process_t* process_init(const char *name, int request_time, int est_time, int memory) {
     process_t* p = (process_t *) malloc(sizeof(process_t));
     p->name = name;
     p->requested_time = request_time;
