@@ -19,7 +19,7 @@ enum status {
 // pseudo-process data structure
 struct process {
     const char *name;
-    int requested_time;
+    int arrival;
     int time_left;
     int memory_requirement;
     enum status p_status;

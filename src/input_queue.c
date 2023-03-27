@@ -10,22 +10,22 @@
 #include "input_queue.h"
 
 
-qnode_t* queue_init() {
-    qnode_t* q = (qnode_t*) malloc(sizeof(qnode_t));
+input_t* input_init() {
+    input_t* q = (input_t*) malloc(sizeof(input_t));
     q->last = q;
     assert(q);
     return q;
 }
 
-void enqueue(qnode_t* q, process_t* p) {
+void enqueue(input_t* q, process_t* p) {
     assert(q->last);
     q->last->process = p;
-    q->last->next = queue_init();
+    q->last->next = input_init();
     q->last = q->last->next;
 }
 
-qnode_t* dequeue(qnode_t** q) {
-    qnode_t* popped = *q;
+input_t* dequeue(input_t** q) {
+    input_t* popped = *q;
     (*q)->next->last = (*q)->last;
     (*q) = (*q)->next;
     return popped;

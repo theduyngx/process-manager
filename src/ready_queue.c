@@ -10,8 +10,8 @@
 #include "ready_queue.h"
 #include "pseudo_process.h"
 
-heap_t* heap_init() {
-    heap_t* h = (heap_t*) malloc(sizeof(heap_t));
+ready_t* ready_init() {
+    ready_t* h = (ready_t*) malloc(sizeof(ready_t));
     assert(h);
     h->arr = (process_t**) malloc(sizeof(process_t*) * SIZE);
     h->max_size = SIZE;
@@ -26,7 +26,7 @@ int parent(int i) {
 
 
 // insert the item at the appropriate position
-void heap_insert(heap_t* h, process_t* p) {
+void ready_insert(ready_t* h, process_t* p) {
     int n = h->size;
     int exceeded = 0;
 
@@ -52,7 +52,7 @@ void heap_insert(heap_t* h, process_t* p) {
 }
 
 // moves the item at position i of array a into its appropriate position
-void max_heapify(heap_t* h, int i) {
+void min_heapify(ready_t* h, int i) {
     int n       = h->size;
     int left    = 2*i + 1;
     int right   = 2*i + 2;
@@ -73,21 +73,21 @@ void max_heapify(heap_t* h, int i) {
         process_t* tmp = arr[i];
         arr[i] = arr[largest];
         arr[largest] = tmp;
-        max_heapify(h, largest);
+        min_heapify(h, largest);
     }
 
 }
 
 // converts an array into a heap
-void build_max_heap(heap_t* h) {
+void build_max_heap(ready_t* h) {
     int i;
     int n = h->size;
     for (i = n/2; i >= 0; i--)
-        max_heapify(h, i);
+        min_heapify(h, i);
 }
 
 // deletes the max item and return
-process_t* extract_max(heap_t* h) {
+process_t* extract_max(ready_t* h) {
     process_t** arr = h->arr;
     process_t* prioritized = arr[0];
 
@@ -101,14 +101,15 @@ process_t* extract_max(heap_t* h) {
         h->arr = (process_t**) malloc(sizeof(process_t*) * h->max_size);
     }
     else {
-        // if the size reaches under twice a predefined block from current maximum size
-        // we remove front-most empty block by reallocating everything else
-        // NOTE: not safe since what if size is much larger than twice
-        if (h->size < h->max_size - 2*SIZE) {
+        int preceded = 0;
+        // loop until we get appropriate max size
+        while (h->size < h->max_size - 2*SIZE) {
             h->max_size -= SIZE;
-            h->arr = (process_t**) realloc(h->arr, sizeof(process_t*) * h->max_size);
+            preceded = 1;
         }
-        max_heapify(h, 0);
+        // reallocated memory as per max size
+        if (preceded) h->arr = (process_t**) realloc(h->arr, sizeof(process_t*) * h->max_size);
+        min_heapify(h, 0);
     }
     return prioritized;
 }

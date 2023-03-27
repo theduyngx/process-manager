@@ -17,10 +17,10 @@ struct heap {
     int max_size;
     process_t** arr;
 };
-typedef struct heap heap_t;
+typedef struct heap ready_t;
 
-heap_t* heap_init();
-void heap_insert(heap_t* h, process_t* p);
-process_t* extract_max(heap_t* h);
+ready_t* ready_init();
+void ready_insert(ready_t* h, process_t* p);
+process_t* extract_max(ready_t* h);
 
 #endif //PROJECT1_READY_QUEUE_H

@@ -11,10 +11,10 @@
 
 
 /* Initialize the process */
-process_t* process_init(const char *name, int request_time, int est_time, int memory) {
+process_t* process_init(const char *name, int arrival, int est_time, int memory) {
     process_t* p = (process_t *) malloc(sizeof(process_t));
     p->name = name;
-    p->requested_time = request_time;
+    p->arrival = arrival;
     p->time_left = est_time;
     p->memory_requirement = memory;
     p->p_status = READY;
@@ -34,10 +34,10 @@ int process_terminate(process_t *p) {
 /* Check whether a given process is before another */
 int process_precede(process_t* tmp, process_t* pivot) {
     int tmp_time           = tmp->time_left;
-    int tmp_request        = tmp->requested_time;
+    int tmp_request        = tmp->arrival;
     const char* tmp_name   = tmp->name;
     int pivot_time         = pivot->time_left;
-    int pivot_request      = pivot->requested_time;
+    int pivot_request      = pivot->arrival;
     const char* pivot_name = pivot->name;
     if (tmp_time < pivot_time) return 1;
     else if (tmp_time == pivot_time) {
@@ -51,10 +51,10 @@ int process_precede(process_t* tmp, process_t* pivot) {
 /* Check whether a given process is after another */
 int process_exceed(process_t* tmp, process_t* pivot) {
     int tmp_time           = tmp->time_left;
-    int tmp_request        = tmp->requested_time;
+    int tmp_request        = tmp->arrival;
     const char* tmp_name   = tmp->name;
     int pivot_time         = pivot->time_left;
-    int pivot_request      = pivot->requested_time;
+    int pivot_request      = pivot->arrival;
     const char* pivot_name = pivot->name;
     if (tmp_time > pivot_time) return 1;
     else if (tmp_time == pivot_time) {

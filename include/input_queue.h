@@ -14,8 +14,8 @@ struct qnode {
     struct qnode* next;
     struct qnode* last;
 };
-typedef struct qnode qnode_t;
+typedef struct qnode input_t;
 
-qnode_t* queue_init();
-void enqueue(qnode_t* q, process_t* p);
-qnode_t* dequeue(qnode_t** q);
+input_t* input_init();
+void enqueue(input_t* q, process_t* p);
+input_t* dequeue(input_t** q);
