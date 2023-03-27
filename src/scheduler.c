@@ -11,15 +11,12 @@ void SJF_scheduler(process_t* buffer[], int size, int quantum) {
     int i = 0;
     int timer = 0;
     int num_quantum = 0;
+    // fill quantum is the hole in the quantum yet to be filled
     int fill_quantum = quantum;
 
     process_t* running = NULL;
     int condition = 1;
     while (i < size || condition) {
-        ///
-        // printf("timer = %d\n", timer);
-        // printf("i (before while) = %d\n", i);
-        ///
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
         // NOTE: modulo operation implies we only check this after a quantum has fully elapsed
@@ -28,9 +25,6 @@ void SJF_scheduler(process_t* buffer[], int size, int quantum) {
             process_t* p = buffer[i];
             enqueue(inputs, p);
             i++;
-            ///
-            // printf("%d %d %d\n", i, p->arrival, p->time_left);
-            ///
         }
         int end = i;
         // we iterate through input queue and insert each process to the ready queue
@@ -40,9 +34,6 @@ void SJF_scheduler(process_t* buffer[], int size, int quantum) {
             free(input);
             ready_insert(ready_queue, p);
         }
-        ///
-        // printf("FINE\n");
-        ///
         // now we run shortest job process by decrementing quantum each time
         if (running == NULL) {
             running = extract_max(ready_queue);
@@ -52,7 +43,6 @@ void SJF_scheduler(process_t* buffer[], int size, int quantum) {
         }
         if (running != NULL) {
             // fill up rest of quantum
-            // fill quantum is the hole in the quantum yet to be filled
             if (fill_quantum != quantum && running->time_left > fill_quantum) {
                 timer += fill_quantum;
                 fill_quantum = quantum;
@@ -63,9 +53,6 @@ void SJF_scheduler(process_t* buffer[], int size, int quantum) {
             else if (running->time_left <= fill_quantum) {
                 timer += running->time_left;
                 fill_quantum -= running->time_left;
-                ///
-                // printf("fill quantum = %d\n", fill_quantum);
-                ///
                 printf("%d,FINISHED,process_name=%s,proc_remaining=%d\n",
                        timer, running->name, ready_queue->size);
                 process_t* tmp = running;
@@ -73,15 +60,16 @@ void SJF_scheduler(process_t* buffer[], int size, int quantum) {
                 running = NULL;
             }
             else {
-                fill_quantum = quantum;
                 running->time_left -= quantum;
                 timer += quantum;
+                fill_quantum = quantum;
                 num_quantum++;
             }
         }
         else {
             timer += fill_quantum;
             fill_quantum = quantum;
+            num_quantum++;
         }
         condition = ready_queue->size > 0;
     }
