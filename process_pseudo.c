@@ -22,7 +22,9 @@ process_t* process_init(const char *name, int request_time, int est_time, int me
 }
 
 /* Terminate the process */
-void process_terminate(process_t *p) {
+int process_terminate(process_t *p) {
+    if (p->p_status != FINISHED) return 1;
     free(p);
     assert(!p);
+    return 0;
 }
