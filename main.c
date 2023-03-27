@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "input_queue.h"
+#include "ready_queue.h"
 
 int main(void) {
     const char* names[SIZE] = {"a1sod", "sdf12", "a1sdo", "s", "a0c", "a1s",
