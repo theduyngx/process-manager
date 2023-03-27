@@ -5,57 +5,83 @@
 #include "ready_queue.h"
 #include "scheduler.h"
 
-void SJB_scheduler(process_t* buffer[], int size, int quantum) {
+void SJF_scheduler(process_t* buffer[], int size, int quantum) {
     input_t* inputs = input_init();
     ready_t* ready_queue = ready_init();
     int i = 0;
     int timer = 0;
     int num_quantum = 0;
-    int fill_quantum = 0;
+    int fill_quantum = quantum;
 
     process_t* running = NULL;
     int condition = 1;
     while (i < size || condition) {
+        ///
+        // printf("timer = %d\n", timer);
+        // printf("i (before while) = %d\n", i);
+        ///
+
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
-        while (i < size && buffer[i]->arrival <= timer) {
+        // NOTE: modulo operation implies we only check this after a quantum has fully elapsed
+        int start = i;
+        while (i < size && timer % quantum == 0 && buffer[i]->arrival <= timer) {
             process_t* p = buffer[i];
             enqueue(inputs, p);
             i++;
+            ///
+            // printf("%d %d %d\n", i, p->arrival, p->time_left);
+            ///
         }
-        input_t* tmp = inputs;
+        int end = i;
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < i; j++) {
+        for (int j=0; j < end-start; j++) {
             input_t* input = dequeue(&inputs);
             process_t* p = input->process;
             free(input);
             ready_insert(ready_queue, p);
-            tmp = tmp->next;
         }
+        ///
+        // printf("FINE\n");
+        ///
         // now we run shortest job process by decrementing quantum each time
         if (running == NULL) {
             running = extract_max(ready_queue);
-            printf("%d,RUNNING,process_name=%s,remaining_time=%d\n",
+            if (running != NULL)
+                printf("%d,RUNNING,process_name=%s,remaining_time=%d\n",
                    timer, running->name, running->time_left);
         }
-        if (running->time_left > fill_quantum) {
-            timer += quantum - fill_quantum;
-            running->time_left -= fill_quantum;
-            num_quantum++;
-        }
-        // if job has been finished
-        else if (running->time_left < quantum) {
-            timer += running->time_left;
-            fill_quantum = (fill_quantum + 1) % 3;
-            printf("%d,FINISHED,process_name=%s,proc_remaining=%d\n",
-                   timer, running->name, ready_queue->size);
-            process_t* sth = running;
-            free(sth);
-            running = NULL;
+        if (running != NULL) {
+            // fill up rest of quantum
+            // fill quantum is the hole in the quantum yet to be filled
+            if (fill_quantum != quantum && running->time_left > fill_quantum) {
+                timer += fill_quantum;
+                fill_quantum = quantum;
+                running->time_left -= fill_quantum;
+                num_quantum++;
+            }
+            // job finishes within given quantum
+            else if (running->time_left <= fill_quantum) {
+                timer += running->time_left;
+                fill_quantum -= running->time_left;
+                ///
+                // printf("fill quantum = %d\n", fill_quantum);
+                ///
+                printf("%d,FINISHED,process_name=%s,proc_remaining=%d\n",
+                       timer, running->name, ready_queue->size);
+                process_t* tmp = running;
+                free(tmp);
+                running = NULL;
+            }
+            else {
+                fill_quantum = quantum;
+                running->time_left -= quantum;
+                timer += quantum;
+                num_quantum++;
+            }
         }
         else {
-            running->time_left -= quantum;
-            timer += quantum;
-            num_quantum++;
+            timer += fill_quantum;
+            fill_quantum = quantum;
         }
         condition = ready_queue->size > 0;
     }

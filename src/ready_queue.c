@@ -88,6 +88,7 @@ void build_max_heap(ready_t* h) {
 
 // deletes the max item and return
 process_t* extract_max(ready_t* h) {
+    if (h->size == 0) return NULL;
     process_t** arr = h->arr;
     process_t* prioritized = arr[0];
 
@@ -96,9 +97,8 @@ process_t* extract_max(ready_t* h) {
 
     // if the size reaches 0
     if (h->size == 0) {
-        free(h->arr);
         h->max_size = SIZE;
-        h->arr = (process_t**) malloc(sizeof(process_t*) * h->max_size);
+        h->arr = (process_t**) realloc(arr, sizeof(process_t*) * h->max_size);
     }
     else {
         int preceded = 0;
