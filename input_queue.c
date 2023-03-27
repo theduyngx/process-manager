@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
-#include "queue.h"
+#include "input_queue.h"
+#include <stdio.h>
 
 /* ---------------------- queue ---------------------- */
 
@@ -45,24 +46,27 @@ int parent(int i) {
 // insert the item at the appropriate position
 void heap_insert(heap_t* h, process_t* p) {
     int n = h->size;
-    if (n >= h->max_size) {
+    int exceeded = 0;
+
+    while (n >= h->max_size) {
+        exceeded = 1;
         h->max_size += SIZE;
-        h->arr = realloc(h->arr, h->max_size);
-        return;
     }
+    if (exceeded) h->arr = (process_t**) realloc(h->arr, sizeof(process_t*) * h->max_size);
+
     // first insert the time at the last position of the array and move it up
     process_t** arr = h->arr;
     arr[n++] = p;
 
     // move up until the heap property satisfies
     int i = n-1;
-    while (i != 0 && left_partition(arr[parent(i)], arr[i])) {
+    h->size = n;
+    while (i > 0 && right_partition(arr[parent(i)], arr[i])) {
         process_t* tmp = arr[parent(i)];
         arr[parent(i)] = arr[i];
         arr[i] = tmp;
         i = parent(i);
     }
-    h->size = n;
 }
 
 // moves the item at position i of array a into its appropriate position
@@ -74,11 +78,11 @@ void max_heapify(heap_t* h, int i) {
 
     // check if the left node is larger than the current node
     process_t** arr = h->arr;
-    if (left <= n && right_partition(arr[left], arr[largest]))
+    if (left <= n && left_partition(arr[left], arr[largest]))
         largest = left;
 
     // check if the right node is larger than the current node
-    if (right <= n && right_partition(arr[right], arr[largest]))
+    if (right <= n && left_partition(arr[right], arr[largest]))
         largest = right;
 
     // swap the largest node with the current node and repeat this process until

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "queue.h"
+#include "input_queue.h"
 
 int main(void) {
     const char* names[SIZE] = {"a1sod", "sdf12", "a1sdo", "s", "a0c", "a1s",
@@ -19,19 +19,19 @@ int main(void) {
         if (strlen(parr[i]->name) < 5) tabs = "\t\t";
         printf("%s%s %d %d\n", parr[i]->name, tabs, parr[i]->time_left, parr[i]->requested_time);
     }
-//    sort(parr, SIZE);
-//    for (int i=0; i < SIZE; i++) {
-//        const char* tabs = "\t";
-//        if (strlen(parr[i]->name) < 5) tabs = "\t\t";
-//        printf("%s%s %d %d\n", parr[i]->name, tabs, parr[i]->time_left, parr[i]->requested_time);
-//    }
 
 
     ///
+    printf("\nHEAPIFIED: \n");
     heap_t* h = heap_init();
     for (int i=0; i < SIZE; i++) {
         heap_insert(h, parr[i]);
     }
+    printf("Max size before 16th element = %d\n", h->max_size);
+    process_t* p_new = process_init("name", 55, 55, 64);
+    heap_insert(h, p_new);
+
+    printf("Max size after 16th element = %d\n", h->max_size);
     for (int i=0; i < h->size; i++) {
         printf("%d ", h->arr[i]->time_left);
     }
@@ -40,10 +40,11 @@ int main(void) {
     while (h->size > 0) {
         i++;
         process_t* p = extract_max(h);
-        printf("%d ", p->time_left);
+        printf("Max size = %d ; ", h->max_size);
+        printf("Service time = %d\n", p->time_left);
         free(p);
     }
-    printf("\n%d", i);
+    free(h);
     ///
 
     return 0;
