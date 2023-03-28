@@ -1,0 +1,5 @@
+
+#ifndef PROJECT1_MEM_ALLOC_H
+#define PROJECT1_MEM_ALLOC_H
+
+#endif //PROJECT1_MEM_ALLOC_H

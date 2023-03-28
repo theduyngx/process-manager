@@ -1,7 +1,6 @@
-#include "queue.h"
 #include "heap.h"
 #include "scheduler.h"
-#include "sort.h"
+
 
 int main(void) {
     const char* names[SIZE] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6",
@@ -32,7 +31,7 @@ int main(void) {
     for (int i=0; i < 2; i++)
         parr3[i] = process_init(names3[i], req3[i], tls3[i], 2);
 
-    SRTN_scheduler(parr, SIZE, 3);
+    RR_scheduler(parr, SIZE, 3);
 
     return 0;
 }

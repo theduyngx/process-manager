@@ -9,6 +9,6 @@ add_executable(project1_clion
         src/scheduler.c
         src/sort.c
         src/queue.c
-        src/heap.c)
+        src/heap.c src/mem_alloc.c include/mem_alloc.h)
 
 target_include_directories(project1_clion PUBLIC include/)

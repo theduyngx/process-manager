@@ -191,7 +191,10 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 /* ---------------------- OPTIMIZATION SCHEDULING ALGORITHMS -------------------------- */
 
 
-/* Shortest job first quantum optimized scheduler */
+/* Shortest job first quantum optimized scheduler.
+ */
+__attribute__((unused))
+
 void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
@@ -259,7 +262,10 @@ void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum
 }
 
 
-/* Shortest remaining time next scheduling */
+/* Shortest remaining time next scheduling
+ */
+__attribute__((unused))
+
 void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
