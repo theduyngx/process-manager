@@ -15,16 +15,19 @@ int main(void) {
                        65, 70, 76, 77, 97, 100};
     process_t* parr[SIZE];
     printf("INIT:\n");
-    for (int i=0; i < SIZE; i++) {
+    for (int i=0; i < SIZE; i++)
         parr[i] = process_init(names[i], req[i], tls[i], 2);
-        const char* tabs = "\t";
-        if (strlen(parr[i]->name) < 5) tabs = "\t\t";
-        printf("%s%s %u %u\n", parr[i]->name, tabs, parr[i]->time_left, parr[i]->arrival);
-    }
 
 
     ///
-    SJF_scheduler(parr, SIZE, 3);
+    const char* names2[4] = {"P1", "P2", "P5", "P4"};
+    int tls2[4] = {50, 30, 80, 10};
+    int req2[4] = {0, 10, 40, 50};
+    process_t* parr2[SIZE];
+    printf("INIT:\n");
+    for (int i=0; i < 4; i++)
+        parr2[i] = process_init(names2[i], req2[i], tls2[i], 8);
+    RR_scheduler(parr2, 4, 3);
     ///
 
     return 0;

@@ -57,8 +57,8 @@ void print_statistics(process_t* buffer[], int num_process, uint32_t makespan) {
 void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
-    int i = 0;
     uint32_t timer = 0;
+    int i = 0;
     int num_quantum = 0;
 
     process_t* running = NULL;
@@ -122,8 +122,8 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     queue_t* ready_queue = queue_init();
-    int i = 0;
     uint32_t timer = 0;
+    int i = 0;
     int num_quantum = 0;
 
     process_t* running = NULL;
@@ -170,6 +170,9 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             }
             else {
                 running->time_left -= quantum;
+                running->p_status = READY;
+                enqueue(ready_queue, running);
+                running = NULL;
                 timer += quantum;
                 num_quantum++;
             }
@@ -187,9 +190,9 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
+    uint32_t timer = 0;
     int i = 0;
     int num_quantum = 0;
-    uint32_t timer = 0;
     // fill quantum is the hole in the quantum yet to be filled
     uint32_t fill_quantum = quantum;
 

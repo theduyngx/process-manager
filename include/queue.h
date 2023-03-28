@@ -25,6 +25,7 @@ struct queue {
 };
 typedef struct queue queue_t;
 
+/* queue functions */
 queue_t* queue_init();
 void enqueue(queue_t* q, process_t* p);
 qnode_t* dequeue(queue_t* q);
