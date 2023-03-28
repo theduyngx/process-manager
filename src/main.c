@@ -27,12 +27,12 @@ int main(void) {
 
     const char* names3[2] = {"P1", "P2"};
     int tls3[2] = {100, 100};
-    int req3[2] = {0, 0};
+    int req3[2] = {0, 500};
     process_t* parr3[2];
     for (int i=0; i < 2; i++)
         parr3[i] = process_init(names3[i], req3[i], tls3[i], 2);
 
-    RR_scheduler(parr3, 2, 3);
+    SJF_scheduler_optimized(parr2, 4, 3);
     ///
 
     return 0;

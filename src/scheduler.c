@@ -67,8 +67,6 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
         int start = i;
-        // FOR PART 3: simply replace the third condition buffer[i]->... with a function that checks
-        // if memory allocation for process buffer[i] succeeds or not
         while (i < size && buffer[i]->arrival <= timer) {
             process_t* p = buffer[i];
             enqueue(input_queue, p);
@@ -76,6 +74,8 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
         }
         // we iterate through input queue and insert each process to the ready queue
         for (int j=0; j < i-start; j++) {
+            // NOTE: for part 3 - memory allocation, just add a condition here where memory must be
+            // successfully allocated in order to be enqueued to the ready_queue
             qnode_t* input = dequeue(input_queue);
             process_t* p = input->process;
             free(input);
@@ -123,118 +123,61 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
     queue_t* ready_queue = queue_init();
     uint32_t timer = 0;
     int i = 0;
-    ///
-    int runs = 0;
-    ///
     int num_quantum = 0;
 
     process_t* running = NULL;
     int condition = 1;
-    while ((i < size || condition || running != NULL)) {
-        runs++;
+    while (i < size || condition || running != NULL) {
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
-        // NOTE: modulo operation implies we only check this after a quantum has fully elapsed
         int start = i;
-        ///
-//        printf("\n------------------------------------------\n");
-//        printf("arrival = %d\n", buffer[i]->arrival);
-//        printf("timer = %d\n", timer);
-        ///
         while (i < size && buffer[i]->arrival <= timer) {
             process_t* p = buffer[i];
             enqueue(input_queue, p);
             i++;
         }
-        ///
         // we iterate through input queue and insert each process to the ready queue
         for (int j=0; j < i-start; j++) {
+            // NOTE: for part 3 - memory allocation, just add a condition here where memory must be
+            // successfully allocated in order to be enqueued to the ready_queue
             qnode_t* input = dequeue(input_queue);
             process_t* p = input->process;
             free(input);
             enqueue(ready_queue, p);
         }
 
-        ///
-//        printf("size = %d\n", ready_queue->size);
-//        if (running != NULL) {
-//            printf("running time left = %d\n", running->time_left);
-//        }
-        ///
-
-
-        ///
+        // round-robin
         if (ready_queue->size > 0 && running != NULL) {
             running->p_status = READY;
             enqueue(ready_queue, running);
             running = NULL;
         }
-        else {
-            int sth = 0;
+        // if there are processes in ready queue, or currently running process exists
+        else if (ready_queue->size > 0 || running != NULL) {
+
+            // if there is no process currently running
             if (running == NULL) {
                 running = dequeue(ready_queue)->process;
                 running->p_status = RUNNING;
                 print_running(timer, running->name, running->time_left);
-                if (running->time_left <= quantum) {
-                    timer += quantum;
-                    num_quantum++;
-                    sth = 1;
-                    print_finished(timer, running->name, ready_queue->size);
-                    running->p_status = FINISHED;
-                    running->completed_time = timer;
-                    running = NULL;
-                }
-                else running->time_left -= quantum;
             }
-            else {
-                if (running->time_left <= quantum) {
-                    timer += quantum;
-                    num_quantum++;
-                    sth = 1;
-                    print_finished(timer, running->name, ready_queue->size);
-                    running->p_status = FINISHED;
-                    running->completed_time = timer;
-                    running = NULL;
-                }
-                // job is still running
-                else running->time_left -= quantum;
-            }
-            if (sth == 0) {
-                timer += quantum;
-                num_quantum++;
-            }
+            int finished = running->time_left <= quantum;
+            timer += quantum;
+            num_quantum++;
+
+            // if, or otherwise, the process has finished its run
+            if (finished) {
+                print_finished(timer, running->name, ready_queue->size);
+                running->p_status = FINISHED;
+                running->completed_time = timer;
+                running = NULL;
+            } else running->time_left -= quantum;
         }
-//        ///
-//        // now we run shortest job process by decrementing quantum each time
-//        qnode_t* entry = dequeue(ready_queue);
-//        if (entry == NULL) {
-//            timer += quantum;
-//            num_quantum++;
-//        }
-//        else {
-//            running = entry->process;
-//            running->p_status = RUNNING;
-//            print_running(timer, running->name, running->time_left);
-//            // job finishes within given quantum
-//            if (running->time_left <= quantum) {
-//                timer += quantum;
-//                print_finished(timer, running->name, ready_queue->size);
-//                running->p_status = FINISHED;
-//                running->completed_time = timer;
-//                running = NULL;
-//            }
-//            // job is still running
-//            else {
-//                running->time_left -= quantum;
-//                timer += quantum;
-//                num_quantum++;
-////                if (ready_queue->size > 0) {
-////                    running->p_status = READY;
-////                    enqueue(ready_queue, running);
-////                    running = NULL;
-////                }
-//            }
-//        }
+        // otherwise - no process running nor any process in ready queue
+        else {
+            timer += quantum;
+            num_quantum++;
+        }
         condition = ready_queue->size > 0;
     }
     // free memory
