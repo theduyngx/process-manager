@@ -130,15 +130,16 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
     process_t* running = NULL;
     int condition = 1;
-    while ((i < size || condition || running != NULL) && runs < 100) {
+    while ((i < size || condition || running != NULL)) {
         runs++;
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
         // NOTE: modulo operation implies we only check this after a quantum has fully elapsed
         int start = i;
         ///
-        printf("arrival = %d\n", buffer[i]->arrival);
-        printf("timer = %d\n", timer);
+//        printf("\n------------------------------------------\n");
+//        printf("arrival = %d\n", buffer[i]->arrival);
+//        printf("timer = %d\n", timer);
         ///
         while (i < size && buffer[i]->arrival <= timer) {
             process_t* p = buffer[i];
@@ -155,52 +156,85 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
         }
 
         ///
-        printf("size = %d\n", ready_queue->size);
-        if (running != NULL) {
-            printf("running time left = %d\n", running->time_left);
-        }
+//        printf("size = %d\n", ready_queue->size);
+//        if (running != NULL) {
+//            printf("running time left = %d\n", running->time_left);
+//        }
         ///
 
 
         ///
-        if (ready_queue->size > 1) {
+        if (ready_queue->size > 0 && running != NULL) {
+            running->p_status = READY;
             enqueue(ready_queue, running);
-            running = dequeue(ready_queue)->process;
-        }
-        ///
-        // now we run shortest job process by decrementing quantum each time
-        qnode_t* entry = dequeue(ready_queue);
-        if (entry == NULL) {
-            timer += quantum;
-            num_quantum++;
+            running = NULL;
         }
         else {
-            running = entry->process;
-            running->p_status = RUNNING;
-            print_running(timer, running->name, running->time_left);
-            // job finishes within given quantum
-            if (running->time_left <= quantum) {
-                timer += quantum;
-                print_finished(timer, running->name, ready_queue->size);
-                running->p_status = FINISHED;
-                running->completed_time = timer;
-                running = NULL;
+            int sth = 0;
+            if (running == NULL) {
+                running = dequeue(ready_queue)->process;
+                running->p_status = RUNNING;
+                print_running(timer, running->name, running->time_left);
+                if (running->time_left <= quantum) {
+                    timer += quantum;
+                    num_quantum++;
+                    sth = 1;
+                    print_finished(timer, running->name, ready_queue->size);
+                    running->p_status = FINISHED;
+                    running->completed_time = timer;
+                    running = NULL;
+                }
+                else running->time_left -= quantum;
             }
-            // job is still running
             else {
-                running->time_left -= quantum;
+                if (running->time_left <= quantum) {
+                    timer += quantum;
+                    num_quantum++;
+                    sth = 1;
+                    print_finished(timer, running->name, ready_queue->size);
+                    running->p_status = FINISHED;
+                    running->completed_time = timer;
+                    running = NULL;
+                }
+                // job is still running
+                else running->time_left -= quantum;
+            }
+            if (sth == 0) {
                 timer += quantum;
                 num_quantum++;
-                running->p_status = READY;
-                enqueue(ready_queue, running);
-                running = NULL;
-//                if (ready_queue->size > 0) {
-//                    running->p_status = READY;
-//                    enqueue(ready_queue, running);
-//                    running = NULL;
-//                }
             }
         }
+//        ///
+//        // now we run shortest job process by decrementing quantum each time
+//        qnode_t* entry = dequeue(ready_queue);
+//        if (entry == NULL) {
+//            timer += quantum;
+//            num_quantum++;
+//        }
+//        else {
+//            running = entry->process;
+//            running->p_status = RUNNING;
+//            print_running(timer, running->name, running->time_left);
+//            // job finishes within given quantum
+//            if (running->time_left <= quantum) {
+//                timer += quantum;
+//                print_finished(timer, running->name, ready_queue->size);
+//                running->p_status = FINISHED;
+//                running->completed_time = timer;
+//                running = NULL;
+//            }
+//            // job is still running
+//            else {
+//                running->time_left -= quantum;
+//                timer += quantum;
+//                num_quantum++;
+////                if (ready_queue->size > 0) {
+////                    running->p_status = READY;
+////                    enqueue(ready_queue, running);
+////                    running = NULL;
+////                }
+//            }
+//        }
         condition = ready_queue->size > 0;
     }
     // free memory
