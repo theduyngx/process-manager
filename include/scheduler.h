@@ -7,8 +7,12 @@
 #ifndef PROJECT1_SCHEDULER_H
 #define PROJECT1_SCHEDULER_H
 
+// normal
 void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum);
 void RR_scheduler(process_t* buffer[], int size, unsigned int quantum);
+
+// optimized
 void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum);
+void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum);
 
 #endif //PROJECT1_SCHEDULER_H

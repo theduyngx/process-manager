@@ -32,8 +32,7 @@ int main(void) {
     for (int i=0; i < 2; i++)
         parr3[i] = process_init(names3[i], req3[i], tls3[i], 2);
 
-    SJF_scheduler_optimized(parr2, 4, 3);
-    ///
+    SRTN_scheduler(parr, SIZE, 3);
 
     return 0;
 }
