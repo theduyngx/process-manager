@@ -30,6 +30,7 @@ queue_t* queue_init() {
 /* enqueue */
 void enqueue(queue_t* q, process_t* p) {
     assert(q);
+    if (! p) return;
     qnode_t* node = q->node;
     assert(node->last);
     p->p_status = READY;

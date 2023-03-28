@@ -1,9 +1,10 @@
 #include <stdio.h>
-#include <string.h>
 #include "queue.h"
 #include "heap.h"
 #include "scheduler.h"
 #include "sort.h"
+
+#include <stdlib.h>
 
 int main(void) {
     const char* names[SIZE] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6",
@@ -14,7 +15,6 @@ int main(void) {
     int req[SIZE+5] = {0, 14, 16, 17, 42, 44, 46, 53, 62,
                        65, 70, 76, 77, 97, 100};
     process_t* parr[SIZE];
-    printf("INIT:\n");
     for (int i=0; i < SIZE; i++)
         parr[i] = process_init(names[i], req[i], tls[i], 2);
 
@@ -24,7 +24,6 @@ int main(void) {
     int tls2[4] = {50, 30, 80, 10};
     int req2[4] = {0, 10, 40, 50};
     process_t* parr2[SIZE];
-    printf("INIT:\n");
     for (int i=0; i < 4; i++)
         parr2[i] = process_init(names2[i], req2[i], tls2[i], 8);
     RR_scheduler(parr2, 4, 3);

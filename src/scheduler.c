@@ -74,9 +74,8 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             enqueue(input_queue, p);
             i++;
         }
-        int end = i;
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < end-start; j++) {
+        for (int j=0; j < i-start; j++) {
             qnode_t* input = dequeue(input_queue);
             process_t* p = input->process;
             free(input);
@@ -124,42 +123,61 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
     queue_t* ready_queue = queue_init();
     uint32_t timer = 0;
     int i = 0;
+    ///
+    int runs = 0;
+    ///
     int num_quantum = 0;
 
     process_t* running = NULL;
     int condition = 1;
-    while (i < size || condition || running != NULL) {
+    while ((i < size || condition || running != NULL) && runs < 100) {
+        runs++;
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
         // NOTE: modulo operation implies we only check this after a quantum has fully elapsed
         int start = i;
+        ///
+        printf("arrival = %d\n", buffer[i]->arrival);
+        printf("timer = %d\n", timer);
+        ///
         while (i < size && buffer[i]->arrival <= timer) {
             process_t* p = buffer[i];
             enqueue(input_queue, p);
             i++;
         }
-        int end = i;
+        ///
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < end-start; j++) {
+        for (int j=0; j < i-start; j++) {
             qnode_t* input = dequeue(input_queue);
             process_t* p = input->process;
             free(input);
             enqueue(ready_queue, p);
         }
+
+        ///
+        printf("size = %d\n", ready_queue->size);
+        if (running != NULL) {
+            printf("running time left = %d\n", running->time_left);
+        }
+        ///
+
+
+        ///
+        if (ready_queue->size > 1) {
+            enqueue(ready_queue, running);
+            running = dequeue(ready_queue)->process;
+        }
+        ///
         // now we run shortest job process by decrementing quantum each time
-        if (running == NULL) {
-            qnode_t* entry = dequeue(ready_queue);
-            running = entry->process;
-            if (running != NULL) {
-                running->p_status = RUNNING;
-                print_running(timer, running->name, running->time_left);
-            }
-            else {
-                timer += quantum;
-                num_quantum++;
-            }
+        qnode_t* entry = dequeue(ready_queue);
+        if (entry == NULL) {
+            timer += quantum;
+            num_quantum++;
         }
         else {
+            running = entry->process;
+            running->p_status = RUNNING;
+            print_running(timer, running->name, running->time_left);
             // job finishes within given quantum
             if (running->time_left <= quantum) {
                 timer += quantum;
@@ -168,13 +186,19 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
                 running->completed_time = timer;
                 running = NULL;
             }
+            // job is still running
             else {
                 running->time_left -= quantum;
+                timer += quantum;
+                num_quantum++;
                 running->p_status = READY;
                 enqueue(ready_queue, running);
                 running = NULL;
-                timer += quantum;
-                num_quantum++;
+//                if (ready_queue->size > 0) {
+//                    running->p_status = READY;
+//                    enqueue(ready_queue, running);
+//                    running = NULL;
+//                }
             }
         }
         condition = ready_queue->size > 0;
@@ -208,9 +232,8 @@ void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum
             enqueue(input_queue, p);
             i++;
         }
-        int end = i;
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < end-start; j++) {
+        for (int j=0; j < i-start; j++) {
             qnode_t* input = dequeue(input_queue);
             process_t* p = input->process;
             free(input);
