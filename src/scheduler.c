@@ -34,7 +34,7 @@ void print_statistics(process_t* buffer[], int num_process) {
     int turnaround = turnaround_floor + (turnaround_floor < turnaround_double);
     printf("Turnaround time %d\n", turnaround);
     double average_overhead = total_overhead / num_process;
-    printf("Time overhead %2f %2f", max_overhead, average_overhead);
+    printf("Time overhead %.2f %.2f", max_overhead, average_overhead);
 }
 
 void free_all_processes();
