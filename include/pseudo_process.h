@@ -6,7 +6,6 @@
 #ifndef PROJECT1_PSEUDO_PROCESS_H
 #define PROJECT1_PSEUDO_PROCESS_H
 
-
 /* data structures */
 
 // status
@@ -20,7 +19,9 @@ enum status {
 struct process {
     const char *name;
     int arrival;
+    int service_time;
     int time_left;
+    int completed_time;
     int memory_requirement;
     enum status p_status;
 };

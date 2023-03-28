@@ -19,6 +19,7 @@ input_t* input_init() {
 
 void enqueue(input_t* q, process_t* p) {
     assert(q->last);
+    p->p_status = READY;
     q->last->process = p;
     q->last->next = input_init();
     q->last = q->last->next;
