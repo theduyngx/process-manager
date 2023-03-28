@@ -8,7 +8,7 @@ add_executable(project1_clion
         src/process_pseudo.c
         src/scheduler.c
         src/sort.c
-        src/input_queue.c
-        src/ready_queue.c)
+        src/queue.c
+        src/heap.c)
 
 target_include_directories(project1_clion PUBLIC include/)

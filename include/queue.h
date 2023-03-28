@@ -10,16 +10,23 @@
 
 #include "pseudo_process.h"
 
-/* queue data structure */
+/* node data structure */
 struct qnode {
     process_t* process;
     struct qnode* next;
     struct qnode* last;
 };
-typedef struct qnode input_t;
+typedef struct qnode qnode_t;
 
-input_t* input_init();
-void enqueue(input_t* q, process_t* p);
-input_t* dequeue(input_t** q);
+/* queue data structure */
+struct queue {
+    qnode_t* node;
+    int size;
+};
+typedef struct queue queue_t;
+
+queue_t* queue_init();
+void enqueue(queue_t* q, process_t* p);
+qnode_t* dequeue(queue_t* q);
 
 #endif //PROJECT1_INPUT_QUEUE_H

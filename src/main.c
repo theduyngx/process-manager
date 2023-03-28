@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "input_queue.h"
-#include "ready_queue.h"
+#include "queue.h"
+#include "heap.h"
 #include "scheduler.h"
 #include "sort.h"
 
@@ -19,7 +19,7 @@ int main(void) {
         parr[i] = process_init(names[i], req[i], tls[i], 2);
         const char* tabs = "\t";
         if (strlen(parr[i]->name) < 5) tabs = "\t\t";
-        printf("%s%s %d %d\n", parr[i]->name, tabs, parr[i]->time_left, parr[i]->arrival);
+        printf("%s%s %u %u\n", parr[i]->name, tabs, parr[i]->time_left, parr[i]->arrival);
     }
 
 

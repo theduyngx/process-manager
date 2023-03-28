@@ -4,6 +4,7 @@
  * Purpose : Functions related to pseudo-processes.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 
 
 /* Initialize the process */
-process_t* process_init(const char *name, int arrival, int service_time, int memory) {
+process_t* process_init(const char *name, uint32_t arrival, uint32_t service_time, unsigned int memory) {
     process_t* p = (process_t *) malloc(sizeof(process_t));
     p->name = name;
     p->arrival = arrival;
@@ -25,20 +26,22 @@ process_t* process_init(const char *name, int arrival, int service_time, int mem
 
 /* Terminate the process */
 int process_terminate(process_t *p) {
-    if (p->p_status != FINISHED) return 1;
+    if (p->p_status != FINISHED) {
+        printf("Process is not finished!\n");
+        return 1;
+    }
     free(p);
-    assert(!p);
     return 0;
 }
 
 
 /* Check whether a given process is before another */
 int process_precede(process_t* tmp, process_t* pivot) {
-    int tmp_time           = tmp->time_left;
-    int tmp_request        = tmp->arrival;
+    uint32_t tmp_time      = tmp->time_left;
+    uint32_t tmp_request   = tmp->arrival;
     const char* tmp_name   = tmp->name;
-    int pivot_time         = pivot->time_left;
-    int pivot_request      = pivot->arrival;
+    uint32_t pivot_time    = pivot->time_left;
+    uint32_t pivot_request = pivot->arrival;
     const char* pivot_name = pivot->name;
     if (tmp_time < pivot_time) return 1;
     else if (tmp_time == pivot_time) {
@@ -51,11 +54,11 @@ int process_precede(process_t* tmp, process_t* pivot) {
 
 /* Check whether a given process is after another */
 int process_exceed(process_t* tmp, process_t* pivot) {
-    int tmp_time           = tmp->time_left;
-    int tmp_request        = tmp->arrival;
+    uint32_t tmp_time      = tmp->time_left;
+    uint32_t tmp_request   = tmp->arrival;
     const char* tmp_name   = tmp->name;
-    int pivot_time         = pivot->time_left;
-    int pivot_request      = pivot->arrival;
+    uint32_t pivot_time    = pivot->time_left;
+    uint32_t pivot_request = pivot->arrival;
     const char* pivot_name = pivot->name;
     if (tmp_time > pivot_time) return 1;
     else if (tmp_time == pivot_time) {

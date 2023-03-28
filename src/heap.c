@@ -1,17 +1,18 @@
 /*
  * Author  : The Duy Nguyen - 1100548
- * File    : ready_queue.c
- * Purpose : Functions related to handling the ready queue. The ready queue is implemented
- *           using dynamically-sized heap.
+ * File    : heap.c
+ * Purpose : Functions related to dynamically-sized heap of processes.
  */
 
 #include <stdlib.h>
 #include <assert.h>
-#include "ready_queue.h"
+#include "heap.h"
 #include "pseudo_process.h"
 
-ready_t* ready_init() {
-    ready_t* h = (ready_t*) malloc(sizeof(ready_t));
+
+/* initialize the heap */
+heap_t* heap_init() {
+    heap_t* h = (heap_t*) malloc(sizeof(heap_t));
     assert(h);
     h->arr = (process_t**) malloc(sizeof(process_t*) * SIZE);
     h->max_size = SIZE;
@@ -19,14 +20,14 @@ ready_t* ready_init() {
     return h;
 }
 
-// returns the index of the parent node
+/* returns the parent node of a given node index */
 int parent(int i) {
     return (i-1)/2;
 }
 
 
-// insert the item at the appropriate position
-void ready_insert(ready_t* h, process_t* p) {
+/* insert a process into the heap */
+void heap_insert(heap_t* h, process_t* p) {
     int n = h->size;
     int exceeded = 0;
 
@@ -51,8 +52,8 @@ void ready_insert(ready_t* h, process_t* p) {
     }
 }
 
-// moves the item at position i of array a into its appropriate position
-void min_heapify(ready_t* h, int i) {
+/* min-heapify by moving process at index i to its appropriate position */
+void min_heapify(heap_t* h, int i) {
     int n       = h->size;
     int left    = 2*i + 1;
     int right   = 2*i + 2;
@@ -78,16 +79,16 @@ void min_heapify(ready_t* h, int i) {
 
 }
 
-// converts an array into a heap
-void build_max_heap(ready_t* h) {
+/* build a min-heap from an array */
+void build_min_heap(heap_t* h) {
     int i;
     int n = h->size;
     for (i = n/2; i >= 0; i--)
         min_heapify(h, i);
 }
 
-// deletes the max item and return
-process_t* extract_max(ready_t* h) {
+/* extract the most prioritized process from heap */
+process_t* extract_min(heap_t* h) {
     if (h->size == 0) return NULL;
     process_t** arr = h->arr;
     process_t* prioritized = arr[0];
