@@ -31,7 +31,18 @@ int main(void) {
     for (int i=0; i < 2; i++)
         parr3[i] = process_init(names3[i], req3[i], tls3[i], 2);
 
-    SJF_scheduler(parr, SIZE, 3);
+
+    const char* name_nf[4] = {"P0", "P1", "P2", "P4"};
+    int req_nf[4] = {0, 30, 60, 100};
+    int tls_nf[4] = {100, 100, 50, 30};
+    int mem_nf[4] = {1024, 512, 512, 216};
+    process_t* parr_nf[4];
+    for (int i=0; i < 4; i++)
+        parr_nf[i] = process_init(name_nf[i], req_nf[i], tls_nf[i],
+                                  mem_nf[i]);
+
+
+    SJF_scheduler(parr_nf, 4, 3);
 
     return 0;
 }

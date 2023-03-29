@@ -1,7 +1,6 @@
 /// CHECK: for whether process size exceeds capacity and terminate it altogether
 /// --> avoid infinite loop
 #include <stdio.h>
-#include <string.h>
 
 #include <stdlib.h>
 #include <assert.h>
@@ -32,22 +31,17 @@ memory_t* memory_init(unsigned int capacity) {
 
 
 int allocate_memory(memory_t* mem, process_t* p) {
-//    memory_t* mem = *memory;
-
-    ///
-//    printf("\nBEFORE MEMORY ALLOCATION ------------\n");
-//    printf("Number of segments = %d\n", mem->num_segments);
-//    for (int i=0; i < mem->num_segments; i++) {
-//        printf("Segment %d - size = %d\n", i, mem->segments->size);
-//    }
-    ///
-
     // if infinite memory
     if (mem->requirement == INF) return SUCCESS;
 
-    // if process size cannot possibly fit memory
+    // if process is too large for memory then kill
     unsigned int p_size = p->size;
-    if (mem->used + p_size > mem->capacity) return FAILURE;
+    if (p_size > mem->capacity) {
+        p->p_status = FINISHED;
+        process_terminate(p);
+    }
+    // else if process cannot presently fit memory
+    else if (mem->used + p_size > mem->capacity) return FAILURE;
 
     // find closest best fit
     int allocated = FAILURE;
@@ -73,29 +67,13 @@ int allocate_memory(memory_t* mem, process_t* p) {
     // assert process fits and memory used does not exceed capacity
     unsigned int diff = min_size - p_size;
     assert(diff >= 0);
-
-    ///
-//    printf("min_size = %d\n", min_size);
-//    printf("p_size = %d\n", p_size);
-//    printf("diff = %d\n", diff);
-//    printf("mem->used (before) = %d\n", mem->used);
-    ///
-
     mem->used += p_size;
-    assert(mem->used < mem->capacity);
-
-    ///
-//    printf("mem->used (after) = %d\n", mem->used);
-    ///
+    assert(mem->used <= mem->capacity);
 
     // allocate best fit memory to process
     min_seg->state = PROCESS;
     min_seg->size = p_size;
     min_seg->process = p;
-
-    ///
-//    printf("min_seg process name is %s\n", min_seg->process->name);
-    ///
 
     if (diff > 0) {
         // create a new hole
@@ -108,22 +86,6 @@ int allocate_memory(memory_t* mem, process_t* p) {
         assert(hole->prev && hole);
         (mem->num_segments)++;
     }
-
-    ///
-//    memseg_t* wev = mem->segments;
-//    const char* str = (wev->process) ? wev->process->name : "";
-//    printf("\nMEMORY ALLOCATION FOR %s ------------\n", str);
-//    printf("Number of segments = %d\n", mem->num_segments);
-//    for (int i=0; i < mem->num_segments; i++) {
-//        printf("Segment %d - size = %d, state = %d\n", i, wev->size, wev->state);
-//        if (wev->process) {
-//            printf("Segment %d - name = %s, %d\n", i, wev->process->name, wev->process->size);
-//        }
-//        wev = wev->next;
-//    }
-    ///
-//    *memory = mem;
-
     return SUCCESS;
 }
 
@@ -136,26 +98,20 @@ int deallocate_memory(memory_t* mem, process_t* p) {
     int found = FAILURE;
     memseg_t* seg = mem->segments;
     for (int i=0; i < mem->num_segments; i++) {
-
-        ///
-//        if (strcmp(p->name, "P1") == 0) {
-//            printf("%d %p %p\n", seg->state, seg->process, p);
-//        }
-        ///
-
         if (seg->state == PROCESS && seg->process == p) {
             found = SUCCESS;
 
             // making it a hole
             seg->state = HOLE;
+            mem->used -= seg->process->size;
             seg->process = NULL;
 
-            // merging
+            // merging proceeding block
             memseg_t* next = seg->next;
-            memseg_t* prev = seg->prev;
             if (next != NULL && next->state == HOLE) {
                 seg->size += next->size;
                 seg->next = next->next;
+
                 // next is not at rear of memory
                 if (next->next != NULL)
                     seg->next->prev = seg;
@@ -163,13 +119,12 @@ int deallocate_memory(memory_t* mem, process_t* p) {
                 free(next);
             }
 
-            ///
-//            printf("FINE\n");
-            ///
-
+            // merging preceding block
+            memseg_t* prev = seg->prev;
             if (prev != NULL && prev->state == HOLE) {
                 prev->size += seg->size;
                 prev->next = seg->next;
+
                 // seg is not at rear of memory
                 if (seg->next != NULL)
                     prev->next->prev = prev;
