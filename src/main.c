@@ -61,6 +61,7 @@ int main(void) {
     ///
     memory_t* mem = memory_inf_init();
     RR_scheduler(parr_nf, 4, mem, 3);
+    free_memory(mem);
     ///
 
     return 0;

@@ -1,3 +1,9 @@
+/*
+ * Author  : The Duy Nguyen - 1100548
+ * File    : mem_alloc.h
+ * Purpose : Header for functions related to creating memory and allocating memory for processes.
+ *           Included data structure of memory.
+ */
 
 #ifndef PROJECT1_MEM_ALLOC_H
 #define PROJECT1_MEM_ALLOC_H
@@ -9,6 +15,8 @@
 #define FAILURE 1
 #define FINITE_CAPACITY 2048
 
+
+/* data structures */
 
 // whether memory is infinite or not
 enum capacity_requirement {
@@ -33,7 +41,7 @@ struct memseg {
 };
 typedef struct memseg memseg_t;
 
-// memory
+// logical memory structure
 struct memory {
     enum capacity_requirement requirement;
     unsigned int capacity;
@@ -44,9 +52,11 @@ struct memory {
 typedef struct memory memory_t;
 
 
+/* function prototypes */
 memory_t* memory_inf_init();
 memory_t* memory_init(unsigned int capacity);
 int allocate_memory(memory_t* mem, process_t* p, unsigned int* base);
 int deallocate_memory(memory_t* mem, process_t* p);
+void free_memory(memory_t* mem);
 
 #endif //PROJECT1_MEM_ALLOC_H

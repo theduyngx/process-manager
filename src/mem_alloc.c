@@ -1,7 +1,10 @@
 /*
+ * Author  : The Duy Nguyen - 1100548
+ * File    : mem_alloc.c
+ * Purpose : File with functions related to creating memory and allocating memory for processes.
+ *
  * PROBLEM: Infinite memory not able to allocate memory sometimes (???)
  */
-
 
 #include <stdlib.h>
 #include <assert.h>
@@ -9,6 +12,7 @@
 #include "pseudo_process.h"
 
 
+/* initialize memory segment / block */
 memseg_t* memseg_init(unsigned int size, unsigned int base, enum segment_state state) {
     memseg_t* memseg = (memseg_t*) malloc(sizeof(memseg_t));
     assert(memseg);
@@ -18,6 +22,7 @@ memseg_t* memseg_init(unsigned int size, unsigned int base, enum segment_state s
     return memseg;
 }
 
+/* initialize logical memory with limited capacity */
 memory_t* memory_init(unsigned int capacity) {
     memory_t* mem = (memory_t*) malloc(sizeof(memory_t));
     assert(mem);
@@ -29,6 +34,7 @@ memory_t* memory_init(unsigned int capacity) {
     return mem;
 }
 
+/* initialize logical memory with infinite memory */
 memory_t* memory_inf_init() {
     memory_t* mem = memory_init(0xffffffff);
     assert(mem);
@@ -38,6 +44,9 @@ memory_t* memory_inf_init() {
 }
 
 
+/* allocate memory for process;
+ * returns SUCCESS (0) or FAILURE (1) to indicate whether allocation succeeds or not
+ */
 int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
     // if process is too large for memory then kill
     unsigned int p_size = p->size;
@@ -99,6 +108,9 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
 }
 
 
+/* deallocate memory of process;
+ * returns SUCCESS (0) or FAILURE (1) to indicate whether de-allocation succeeds or not
+ */
 int deallocate_memory(memory_t* mem, process_t* p) {
     if (mem->requirement == INF) return SUCCESS;
     if (p->time_left > 0) return FAILURE;
@@ -146,4 +158,15 @@ int deallocate_memory(memory_t* mem, process_t* p) {
     }
     assert(mem->num_segments > 0);
     return found;
+}
+
+
+/* free memory data structure */
+void free_memory(memory_t* mem) {
+    while (mem->num_segments > 0) {
+        mem->segments = mem->segments->next;
+        free(mem->segments->prev);
+    }
+    free(mem->segments);
+    free(mem);
 }
