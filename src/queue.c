@@ -41,15 +41,23 @@ void enqueue(queue_t* q, process_t* p) {
 }
 
 /* dequeue */
-qnode_t* dequeue(queue_t* q) {
+process_t* dequeue(queue_t* q) {
     if (q->size <= 0) {
         q->size = 0;
         return NULL;
     }
     qnode_t* popped = q->node;
+    process_t* p = popped->process;
     qnode_t** node = &(q->node);
     (*node)->next->last = (*node)->last;
     (*node) = (*node)->next;
     (q->size)--;
-    return popped;
+    free(popped);
+    return p;
+}
+
+/* free queue */
+void free_queue(queue_t* q) {
+    while (q->size > 0) dequeue(q);
+    free(q);
 }

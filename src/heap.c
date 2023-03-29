@@ -26,32 +26,6 @@ int parent(int i) {
 }
 
 
-/* insert a process into the heap */
-void heap_insert(heap_t* h, process_t* p) {
-    int n = h->size;
-    int exceeded = 0;
-
-    while (n >= h->max_size) {
-        exceeded = 1;
-        h->max_size += SIZE;
-    }
-    if (exceeded) h->arr = (process_t**) realloc(h->arr, sizeof(process_t*) * h->max_size);
-
-    // first insert the time at the last position of the array and move it up
-    process_t** arr = h->arr;
-    arr[n++] = p;
-
-    // move up until the heap property satisfies
-    int i = n-1;
-    h->size = n;
-    while (i > 0 && process_exceed(arr[parent(i)], arr[i])) {
-        process_t* tmp = arr[parent(i)];
-        arr[parent(i)] = arr[i];
-        arr[i] = tmp;
-        i = parent(i);
-    }
-}
-
 /* min-heapify by moving process at index i to its appropriate position */
 void min_heapify(heap_t* h, int i) {
     int n       = h->size;
@@ -76,19 +50,38 @@ void min_heapify(heap_t* h, int i) {
         arr[largest] = tmp;
         min_heapify(h, largest);
     }
-
 }
 
-/* build a min-heap from an array */
-void build_min_heap(heap_t* h) {
-    int i;
+
+/* insert a process into the heap */
+void heap_push(heap_t* h, process_t* p) {
     int n = h->size;
-    for (i = n/2; i >= 0; i--)
-        min_heapify(h, i);
+    int exceeded = 0;
+
+    while (n >= h->max_size) {
+        exceeded = 1;
+        h->max_size += SIZE;
+    }
+    if (exceeded) h->arr = (process_t**) realloc(h->arr, sizeof(process_t*) * h->max_size);
+
+    // first insert the time at the last position of the array and move it up
+    process_t** arr = h->arr;
+    arr[n++] = p;
+
+    // move up until the heap property satisfies
+    int i = n-1;
+    h->size = n;
+    while (i > 0 && process_exceed(arr[parent(i)], arr[i])) {
+        process_t* tmp = arr[parent(i)];
+        arr[parent(i)] = arr[i];
+        arr[i] = tmp;
+        i = parent(i);
+    }
 }
+
 
 /* extract the most prioritized process from heap */
-process_t* extract_min(heap_t* h) {
+process_t* heap_pop(heap_t* h) {
     if (h->size == 0) return NULL;
     process_t** arr = h->arr;
     process_t* prioritized = arr[0];
@@ -113,4 +106,18 @@ process_t* extract_min(heap_t* h) {
         min_heapify(h, 0);
     }
     return prioritized;
+}
+
+/* build a min-heap from an array */
+void build_min_heap(heap_t* h) {
+    int i;
+    int n = h->size;
+    for (i = n/2; i >= 0; i--)
+        min_heapify(h, i);
+}
+
+/* free heap */
+void free_heap(heap_t* h) {
+    free(h->arr);
+    free(h);
 }

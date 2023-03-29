@@ -1,11 +1,11 @@
 #include "heap.h"
 #include "scheduler.h"
-
-#include <stdio.h>
-#include <stdint.h>
+#include "mem_alloc.h"
 
 
 int main(void) {
+
+    ///////
     const char* names[SIZE] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6",
                                "P7", "P8", "P9", "P10", "P11", "P12",
                                "P13", "P14"};
@@ -18,7 +18,7 @@ int main(void) {
         parr[i] = process_init(names[i], req[i], tls[i], 2);
 
 
-    ///
+    ///////
     const char* names2[4] = {"P1", "P2", "P5", "P4"};
     int tls2[4] = {50, 30, 80, 10};
     int req2[4] = {0, 10, 40, 50};
@@ -27,6 +27,7 @@ int main(void) {
         parr2[i] = process_init(names2[i], req2[i], tls2[i], 8);
 
 
+    ///////
     const char* names3[2] = {"P1", "P2"};
     int tls3[2] = {100, 100};
     int req3[2] = {0, 500};
@@ -35,6 +36,7 @@ int main(void) {
         parr3[i] = process_init(names3[i], req3[i], tls3[i], 2);
 
 
+    ///////
     const char* name_nf[4] = {"P0", "P1", "P2", "P4"};
     int req_nf[4] = {0, 30, 60, 100};
     int tls_nf[4] = {100, 100, 50, 30};
@@ -45,6 +47,7 @@ int main(void) {
                                   mem_nf[i]);
 
 
+    ///////
     const char* name_f[3] = {"P4", "P2", "P1"};
     int req_f[3] = {0, 29, 99};
     int tls_f[3] = {30, 40, 20};
@@ -54,9 +57,11 @@ int main(void) {
         parr_f[i] = process_init(name_f[i], req_f[i], tls_f[i],
                                  mem_f[i]);
 
-    RR_scheduler(parr_nf, 4, 3);
-    unsigned int i = 0xffffffff;
-    printf("i = %u\n", i);
+
+    ///
+    memory_t* mem = memory_inf_init();
+    RR_scheduler(parr_nf, 4, mem, 3);
+    ///
 
     return 0;
 }

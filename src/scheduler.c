@@ -9,7 +9,6 @@
 #include "queue.h"
 #include "heap.h"
 #include "scheduler.h"
-#include "mem_alloc.h"
 
 
 /* clear all processes in buffer */
@@ -68,10 +67,7 @@ void print_statistics(process_t* buffer[], int num_process, uint32_t makespan) {
 
 
 /* Shortest job first scheduler */
-void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
-    ///
-    memory_t* mem = memory_init(2048);
-    ///
+void SJF_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
     uint32_t timer = 0;
@@ -100,14 +96,13 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             if (allocate_memory(mem, p, &assigned_base) == FAILURE)
                 continue;
             print_ready(timer, p->name, assigned_base);
-            qnode_t* input = dequeue(input_queue);
-            free(input);
-            heap_insert(ready_queue, p);
+            dequeue(input_queue);
+            heap_push(ready_queue, p);
         }
 
         // if no running process, then either get from ready queue or currently no process requesting
         if (running == NULL) {
-            running = extract_min(ready_queue);
+            running = heap_pop(ready_queue);
             if (running != NULL) {
                 running->p_status = RUNNING;
                 print_running(timer, running->name, running->time_left);
@@ -133,17 +128,14 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
         size_condition = ready_queue->size > 0;
     }
     // free memory
-    free(input_queue);
-    free(ready_queue);
+    free_queue(input_queue);
+    free_heap(ready_queue);
     print_statistics(buffer, size, timer);
 }
 
 
 /* Round-robin */
-void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
-    ///
-    memory_t* mem = memory_init(2048);
-    ///
+void RR_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     queue_t* ready_queue = queue_init();
     uint32_t timer = 0;
@@ -172,8 +164,7 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             if (allocate_memory(mem, p, &assigned_base) == FAILURE)
                 continue;
             print_ready(timer, p->name, assigned_base);
-            qnode_t* input = dequeue(input_queue);
-            free(input);
+            dequeue(input_queue);
             enqueue(ready_queue, p);
         }
 
@@ -188,7 +179,7 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
             // if there is no process currently running
             if (running == NULL) {
-                running = dequeue(ready_queue)->process;
+                running = dequeue(ready_queue);
                 running->p_status = RUNNING;
                 print_running(timer, running->name, running->time_left);
             }
@@ -212,8 +203,8 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
         size_condition = ready_queue->size > 0;
     }
     // free memory
-    free(input_queue);
-    free(ready_queue);
+    free_queue(input_queue);
+    free_queue(ready_queue);
     print_statistics(buffer, size, timer);
 }
 
@@ -248,15 +239,13 @@ void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum
 
         // we iterate through input queue and insert each process to the ready queue
         for (int j=0; j < i-start; j++) {
-            qnode_t* input = dequeue(input_queue);
-            process_t* p = input->process;
-            free(input);
-            heap_insert(ready_queue, p);
+            process_t* p = dequeue(input_queue);
+            heap_push(ready_queue, p);
         }
 
         // now we run shortest job process by decrementing quantum each time
         if (running == NULL) {
-            running = extract_min(ready_queue);
+            running = heap_pop(ready_queue);
             if (running != NULL) {
                 running->p_status = RUNNING;
                 print_running(timer, running->name, running->time_left);
@@ -286,8 +275,8 @@ void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum
         size_condition = ready_queue->size > 0;
     }
     // free memory
-    free(input_queue);
-    free(ready_queue);
+    free_queue(input_queue);
+    free_heap(ready_queue);
     print_statistics(buffer, size, timer);
 }
 
@@ -296,10 +285,7 @@ void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum
  */
 __attribute__((unused))
 
-void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
-    ///
-    memory_t* mem = memory_init(2048);
-    ///
+void SRTN_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
     uint32_t timer = 0;
@@ -328,15 +314,14 @@ void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             if (allocate_memory(mem, p, &assigned_base) == FAILURE)
                 continue;
             print_ready(timer, p->name, assigned_base);
-            qnode_t* input = dequeue(input_queue);
-            free(input);
-            heap_insert(ready_queue, p);
+            dequeue(input_queue);
+            heap_push(ready_queue, p);
         }
 
         // round-robin
         if (ready_queue->size > 0 && running != NULL) {
             running->p_status = READY;
-            heap_insert(ready_queue, running);
+            heap_push(ready_queue, running);
             running = NULL;
         }
             // if there are processes in ready queue, or currently running process exists
@@ -344,7 +329,7 @@ void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
             // if there is no process currently running
             if (running == NULL) {
-                running = extract_min(ready_queue);
+                running = heap_pop(ready_queue);
                 running->p_status = RUNNING;
                 print_running(timer, running->name, running->time_left);
             }
@@ -368,7 +353,7 @@ void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
         size_condition = ready_queue->size > 0;
     }
     // free memory
-    free(input_queue);
-    free(ready_queue);
+    free_queue(input_queue);
+    free_heap(ready_queue);
     print_statistics(buffer, size, timer);
 }

@@ -20,7 +20,8 @@ struct heap {
 typedef struct heap heap_t;
 
 heap_t* heap_init();
-void heap_insert(heap_t* h, process_t* p);
-process_t* extract_min(heap_t* h);
+void heap_push(heap_t* h, process_t* p);
+process_t* heap_pop(heap_t* h);
+void free_heap(heap_t* h);
 
 #endif //PROJECT1_heap_QUEUE_H

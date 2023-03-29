@@ -1,10 +1,5 @@
 /*
- * CURRENTLY WRONG AT: infinite memory
- * ==> return allocated immediately is bad when you have to actually keep track of the base and whatnot
- * The only difference between infinite and finite memory is that you don't have to check for capacity.
- * Other than that, they both use best fit!
- *
- * So yes, the only difference is, you just need to remove the ceiling checking for infinite memory.
+ * PROBLEM: Infinite memory not able to allocate memory sometimes (???)
  */
 
 
