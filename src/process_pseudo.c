@@ -12,14 +12,14 @@
 
 
 /* Initialize the process */
-process_t* process_init(const char *name, uint32_t arrival, uint32_t service_time, unsigned int memory) {
+process_t* process_init(const char *name, uint32_t arrival, uint32_t service_time, unsigned int size) {
     process_t* p = (process_t *) malloc(sizeof(process_t));
     p->name = name;
     p->arrival = arrival;
     p->service_time = service_time;
     p->time_left = p->service_time;
     p->completed_time = -1;
-    p->memory_requirement = memory;
+    p->size = size;
     assert(p);
     return p;
 }

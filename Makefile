@@ -1,7 +1,7 @@
 # flags
 CC = gcc
-CCFLAGS = -Wall
 INC = -Iinclude/
+CFLAGS = -Wall
 CFLAGS += $(INC)
 
 # paths
@@ -12,10 +12,10 @@ OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(SRC_DIR)/%.o, $(wildcard $(SRC_DIR)/*.c))
 EXE = main
 
 $(EXE): $(OBJECTS)
-	$(CC) $(CFLAGS) $(OBJECTS) -o $(EXE) -g $(CFLAGS)
+	$(CC) $(CFLAGS) $(OBJECTS) -o $@ -g
 
-$(OBJ_DIR)/%.o: /%.c /%.h
-	$(CC) $(CFLAGS) -c -o $@ $< $(CFLAGS)
+%.o: %.c %.h
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
 	rm -f $(EXE) $(OBJ_DIR)/*.o $(SRC_DIR)/*.o

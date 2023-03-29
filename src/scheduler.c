@@ -9,6 +9,7 @@
 #include "queue.h"
 #include "heap.h"
 #include "scheduler.h"
+#include "mem_alloc.h"
 
 
 /* clear all processes in buffer */
@@ -63,6 +64,9 @@ void print_statistics(process_t* buffer[], int num_process, uint32_t makespan) {
 
 /* Shortest job first scheduler */
 void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
+    ///
+    memory_t* mem = memory_init(2048);
+    ///
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
     uint32_t timer = 0;
@@ -84,6 +88,8 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
         for (int j=0; j < i-start; j++) {
             // NOTE: for part 3 - memory allocation, just add a condition here where memory must be
             // successfully allocated in order to be enqueued to the ready_queue
+            process_t* hp = input_queue->node->process;
+            if (allocate_memory(mem, hp) == FAILURE) break;
             qnode_t* input = dequeue(input_queue);
             process_t* p = input->process;
             free(input);
@@ -105,6 +111,13 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             timer += quantum;
             // job finishes within given quantum
             if (running->time_left <= quantum) {
+                running->time_left = 0;
+                if (deallocate_memory(mem, running) == FAILURE) {
+                    ////
+                    printf("ERROR: %s\n", running->name);
+                    ////
+                    exit(1);
+                }
                 print_finished(timer, running->name, ready_queue->size);
                 running->p_status = FINISHED;
                 running->completed_time = timer;

@@ -24,14 +24,14 @@ struct process {
     uint32_t service_time;
     uint32_t time_left;
     uint32_t completed_time;
-    unsigned int memory_requirement;
+    unsigned int size;
     enum status p_status;
 };
 typedef struct process process_t;
 
 
 /* function prototypes */
-process_t* process_init(const char *name, uint32_t request_time, uint32_t est_time, unsigned int memory);
+process_t* process_init(const char *name, uint32_t request_time, uint32_t service_time, unsigned int size);
 int process_terminate(process_t *p);
 int process_precede(process_t* tmp, process_t* pivot);
 int process_exceed(process_t* tmp, process_t* pivot);
