@@ -7,7 +7,7 @@
 
 #define SUCCESS 0
 #define FAILURE 1
-#define MAX_CAPACITY 2048
+#define FINITE_CAPACITY 2048
 
 
 // whether memory is infinite or not
@@ -26,6 +26,7 @@ enum segment_state {
 struct memseg {
     enum segment_state state;
     unsigned int size;
+    unsigned int base;
     process_t* process;
     struct memseg *next;
     struct memseg *prev;
@@ -45,7 +46,7 @@ typedef struct memory memory_t;
 
 memory_t* memory_inf_init();
 memory_t* memory_init(unsigned int capacity);
-int allocate_memory(memory_t* mem, process_t* p);
+int allocate_memory(memory_t* mem, process_t* p, unsigned int* base);
 int deallocate_memory(memory_t* mem, process_t* p);
 
 #endif //PROJECT1_MEM_ALLOC_H

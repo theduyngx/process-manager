@@ -1,6 +1,9 @@
 #include "heap.h"
 #include "scheduler.h"
 
+#include <stdio.h>
+#include <stdint.h>
+
 
 int main(void) {
     const char* names[SIZE] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6",
@@ -42,7 +45,18 @@ int main(void) {
                                   mem_nf[i]);
 
 
-    SJF_scheduler(parr_nf, 4, 3);
+    const char* name_f[3] = {"P4", "P2", "P1"};
+    int req_f[3] = {0, 29, 99};
+    int tls_f[3] = {30, 40, 20};
+    int mem_f[3] = {16, 64, 32};
+    process_t* parr_f[3];
+    for (int i=0; i < 3; i++)
+        parr_f[i] = process_init(name_f[i], req_f[i], tls_f[i],
+                                 mem_f[i]);
+
+    RR_scheduler(parr_nf, 4, 3);
+    unsigned int i = 0xffffffff;
+    printf("i = %u\n", i);
 
     return 0;
 }

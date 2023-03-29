@@ -4,10 +4,6 @@
  * Purpose : Functions related to scheduling processes.
  */
 
-///// CHECK:
-// 1. when the process allocation actually happens (it happens after every quantum so make sure
-//    to properly implement that!!!)
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "queue.h"
@@ -20,6 +16,11 @@
 void clear_buffer(process_t* buffer[], int size) {
     for (int i=0; i < size; i++)
         process_terminate(buffer[i]);
+}
+
+/* notify successful memory allocation and process getting to input queue */
+void print_ready(uint32_t timer, const char* name, unsigned int base) {
+    printf("%u,READY,process_name=%s,assigned_at=%u\n", timer, name, base);
 }
 
 /* print running process */
@@ -91,19 +92,15 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
         // we iterate through input queue and insert each process to the ready queue
         for (int j=0; j < init_size + i-start; j++) {
-            process_t* hp = input_queue->node->process;
+            process_t* p = input_queue->node->process;
 
             // memory allocation - success means getting pushed to input queue
             // otherwise either wait, or process too expensive and must be killed
-            printf("memory currently has %d free space\n", mem->capacity - mem->used);
-            if (allocate_memory(mem, hp) == FAILURE) {
-                ///
-                printf("\nfailed to allocate process %s\n", hp->name);
-                ///
+            unsigned int assigned_base;
+            if (allocate_memory(mem, p, &assigned_base) == FAILURE)
                 continue;
-            }
+            print_ready(timer, p->name, assigned_base);
             qnode_t* input = dequeue(input_queue);
-            process_t* p = input->process;
             free(input);
             heap_insert(ready_queue, p);
         }
@@ -124,15 +121,8 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             // job finishes within given quantum
             if (running->time_left <= quantum) {
                 running->time_left = 0;
-                if (deallocate_memory(mem, running) == FAILURE) {
-                    ////
-                    printf("ERROR: %s\n", running->name);
-                    ////
+                if (deallocate_memory(mem, running) == FAILURE)
                     exit(1);
-                }
-                ////
-                printf("DEALLOCATED SUCCEEDED: %s\n", running->name);
-                ////
                 print_finished(timer, running->name, ready_queue->size);
                 running->p_status = FINISHED;
                 running->completed_time = timer;
@@ -151,6 +141,9 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
 /* Round-robin */
 void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
+    ///
+    memory_t* mem = memory_init(2048);
+    ///
     queue_t* input_queue = queue_init();
     queue_t* ready_queue = queue_init();
     uint32_t timer = 0;
@@ -162,6 +155,7 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
         int start = i;
+        int init_size = input_queue->size;
         while (i < size && buffer[i]->arrival <= timer) {
             process_t* p = buffer[i];
             enqueue(input_queue, p);
@@ -169,11 +163,16 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
         }
 
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < i-start; j++) {
-            // NOTE: for part 3 - memory allocation, just add a condition here where memory must be
-            // successfully allocated in order to be enqueued to the ready_queue
+        for (int j=0; j < init_size + i-start; j++) {
+            process_t* p = input_queue->node->process;
+
+            // memory allocation - success means getting pushed to input queue
+            // otherwise either wait, or process too expensive and must be killed
+            unsigned int assigned_base;
+            if (allocate_memory(mem, p, &assigned_base) == FAILURE)
+                continue;
+            print_ready(timer, p->name, assigned_base);
             qnode_t* input = dequeue(input_queue);
-            process_t* p = input->process;
             free(input);
             enqueue(ready_queue, p);
         }
@@ -198,6 +197,9 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
             // if, or otherwise, the process has finished its run
             if (finished) {
+                running->time_left = 0;
+                if (deallocate_memory(mem, running) == FAILURE)
+                    exit(1);
                 print_finished(timer, running->name, ready_queue->size);
                 running->p_status = FINISHED;
                 running->completed_time = timer;
@@ -216,10 +218,10 @@ void RR_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 }
 
 
-/* ---------------------- OPTIMIZATION SCHEDULING ALGORITHMS -------------------------- */
+/* ------------------------ OTHER SCHEDULING ALGORITHMS -------------------------- */
 
 
-/* Shortest job first quantum optimized scheduler.
+/* Shortest job first quantum optimized scheduler - WITHOUT MEMORY ALLOCATION.
  */
 __attribute__((unused))
 
@@ -290,11 +292,14 @@ void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum
 }
 
 
-/* Shortest remaining time next scheduling
+/* Shortest remaining time next scheduling - with memory allocation.
  */
 __attribute__((unused))
 
 void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
+    ///
+    memory_t* mem = memory_init(2048);
+    ///
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
     uint32_t timer = 0;
@@ -306,6 +311,7 @@ void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
         int start = i;
+        int init_size = input_queue->size;
         while (i < size && buffer[i]->arrival <= timer) {
             process_t* p = buffer[i];
             enqueue(input_queue, p);
@@ -313,11 +319,16 @@ void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
         }
 
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < i-start; j++) {
-            // NOTE: for part 3 - memory allocation, just add a condition here where memory must be
-            // successfully allocated in order to be enqueued to the ready_queue
+        for (int j=0; j < init_size + i-start; j++) {
+            process_t* p = input_queue->node->process;
+
+            // memory allocation - success means getting pushed to input queue
+            // otherwise either wait, or process too expensive and must be killed
+            unsigned int assigned_base;
+            if (allocate_memory(mem, p, &assigned_base) == FAILURE)
+                continue;
+            print_ready(timer, p->name, assigned_base);
             qnode_t* input = dequeue(input_queue);
-            process_t* p = input->process;
             free(input);
             heap_insert(ready_queue, p);
         }
@@ -328,8 +339,7 @@ void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             heap_insert(ready_queue, running);
             running = NULL;
         }
-
-        // if there are processes in ready queue, or currently running process exists
+            // if there are processes in ready queue, or currently running process exists
         else if (ready_queue->size > 0 || running != NULL) {
 
             // if there is no process currently running
@@ -343,13 +353,17 @@ void SRTN_scheduler(process_t* buffer[], int size, unsigned int quantum) {
 
             // if, or otherwise, the process has finished its run
             if (finished) {
+                running->time_left = 0;
+                if (deallocate_memory(mem, running) == FAILURE)
+                    exit(1);
                 print_finished(timer, running->name, ready_queue->size);
                 running->p_status = FINISHED;
                 running->completed_time = timer;
                 running = NULL;
             } else running->time_left -= quantum;
         }
-        // otherwise - no process running nor any process in ready queue
+
+            // otherwise - no process running nor any process in ready queue
         else timer += quantum;
         size_condition = ready_queue->size > 0;
     }

@@ -1,6 +1,12 @@
-/// CHECK: for whether process size exceeds capacity and terminate it altogether
-/// --> avoid infinite loop
-#include <stdio.h>
+/*
+ * CURRENTLY WRONG AT: infinite memory
+ * ==> return allocated immediately is bad when you have to actually keep track of the base and whatnot
+ * The only difference between infinite and finite memory is that you don't have to check for capacity.
+ * Other than that, they both use best fit!
+ *
+ * So yes, the only difference is, you just need to remove the ceiling checking for infinite memory.
+ */
+
 
 #include <stdlib.h>
 #include <assert.h>
@@ -8,11 +14,13 @@
 #include "pseudo_process.h"
 
 
-memory_t* memory_inf_init() {
-    memory_t* mem = (memory_t*) malloc(sizeof(memory_t));
-    assert(mem);
-    mem->requirement = INF;
-    return mem;
+memseg_t* memseg_init(unsigned int size, unsigned int base, enum segment_state state) {
+    memseg_t* memseg = (memseg_t*) malloc(sizeof(memseg_t));
+    assert(memseg);
+    memseg->size = size;
+    memseg->base = base;
+    memseg->state = state;
+    return memseg;
 }
 
 memory_t* memory_init(unsigned int capacity) {
@@ -21,19 +29,21 @@ memory_t* memory_init(unsigned int capacity) {
     mem->requirement = FIN;
     mem->capacity = capacity;
     mem->used = 0;
-    mem->segments = (memseg_t*) malloc(sizeof(memseg_t));
-    assert(mem->segments);
+    mem->segments = memseg_init(capacity, 0, HOLE);
     mem->num_segments = 1;
-    mem->segments->size = capacity;
-    mem->segments->state = HOLE;
+    return mem;
+}
+
+memory_t* memory_inf_init() {
+    memory_t* mem = memory_init(0xffffffff);
+    assert(mem);
+    assert(mem->segments);
+    mem->requirement = INF;
     return mem;
 }
 
 
-int allocate_memory(memory_t* mem, process_t* p) {
-    // if infinite memory
-    if (mem->requirement == INF) return SUCCESS;
-
+int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
     // if process is too large for memory then kill
     unsigned int p_size = p->size;
     if (p_size > mem->capacity) {
@@ -45,7 +55,7 @@ int allocate_memory(memory_t* mem, process_t* p) {
 
     // find closest best fit
     int allocated = FAILURE;
-    unsigned int min_size = MAX_CAPACITY;
+    unsigned int min_size = FINITE_CAPACITY;
     memseg_t* seg = mem->segments;
     memseg_t* min_seg = seg;
     for (int i=0; i < mem->num_segments; i++) {
@@ -62,12 +72,16 @@ int allocate_memory(memory_t* mem, process_t* p) {
     }
 
     // if not able to allocate
-    if (allocated == FAILURE) return FAILURE;
+    if (allocated == FAILURE) {
+        assert(mem->requirement == FIN);
+        return FAILURE;
+    }
 
     // assert process fits and memory used does not exceed capacity
     unsigned int diff = min_size - p_size;
     assert(diff >= 0);
     mem->used += p_size;
+    *base = min_seg->base;
     assert(mem->used <= mem->capacity);
 
     // allocate best fit memory to process
@@ -77,13 +91,13 @@ int allocate_memory(memory_t* mem, process_t* p) {
 
     if (diff > 0) {
         // create a new hole
-        memseg_t* hole = (memseg_t*) malloc(sizeof(memseg_t));
-        hole->state = HOLE;
-        hole->size = diff;
+        unsigned int hole_base = (*base) + p_size;
+        assert(hole_base + diff <= mem->capacity);       // assert not exceeding capacity
+        memseg_t* hole = memseg_init(diff, hole_base, HOLE);
         hole->prev = min_seg;
         hole->next = min_seg->next;
         min_seg->next = hole;
-        assert(hole->prev && hole);
+        assert(hole->prev && hole);                 // assert hole exists properly
         (mem->num_segments)++;
     }
     return SUCCESS;
