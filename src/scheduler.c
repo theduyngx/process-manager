@@ -89,7 +89,34 @@ void SJF_scheduler(process_t* buffer[], int size, unsigned int quantum) {
             // NOTE: for part 3 - memory allocation, just add a condition here where memory must be
             // successfully allocated in order to be enqueued to the ready_queue
             process_t* hp = input_queue->node->process;
-            if (allocate_memory(mem, hp) == FAILURE) break;
+            if (allocate_memory(mem, hp) == FAILURE) {
+                ///
+                printf("failed to allocate process %s\n", hp->name);
+                ///
+                continue;
+            }
+            ////
+//            if (deallocate_memory(mem, hp) == FAILURE) {
+//                printf("failed to deallocate process %s\n", hp->name);
+//            }
+//            else printf("successfully deallocate process %s\n", hp->name);
+            ////
+
+//            printf("Number of segments = %d\n", mem->num_segments);
+//            memseg_t* wev = mem->segments;
+//            for (int k=0; k < mem->num_segments; k++) {
+//                printf("Segment %d - size = %d, state = %d\n", k, wev->size, wev->state);
+//                if (wev->process) {
+//                    printf("Segment %d - name = %s, %d\n", k, wev->process->name, wev->process->size);
+//                }
+//                wev = wev->next;
+//            }
+
+            ////
+//            printf("ALLOCATED: %s\n", hp->name);
+//            printf("Memory process address ref: %p\n", (mem->segments->process));
+//            printf("Process address ref: %p\n", hp);
+            ////
             qnode_t* input = dequeue(input_queue);
             process_t* p = input->process;
             free(input);
