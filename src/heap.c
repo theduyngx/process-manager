@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "heap.h"
-#include "pseudo_process.h"
 
 
 /* initialize the heap */
@@ -106,14 +105,6 @@ process_t* heap_pop(heap_t* h) {
         min_heapify(h, 0);
     }
     return prioritized;
-}
-
-/* build a min-heap from an array */
-void build_min_heap(heap_t* h) {
-    int i;
-    int n = h->size;
-    for (i = n/2; i >= 0; i--)
-        min_heapify(h, i);
 }
 
 /* free heap */
