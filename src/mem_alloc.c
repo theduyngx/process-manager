@@ -163,9 +163,10 @@ int deallocate_memory(memory_t* mem, process_t* p) {
 
 /* free memory data structure */
 void free_memory(memory_t* mem) {
-    while (mem->num_segments > 0) {
+    while (mem->num_segments > 1) {
         mem->segments = mem->segments->next;
         free(mem->segments->prev);
+        (mem->num_segments)--;
     }
     free(mem->segments);
     free(mem);

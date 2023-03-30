@@ -8,7 +8,7 @@
 #ifndef PROJECT1_MEM_ALLOC_H
 #define PROJECT1_MEM_ALLOC_H
 
-#include <stdint.h>
+
 #include "pseudo_process.h"
 
 #define SUCCESS 0
