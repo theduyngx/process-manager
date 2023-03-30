@@ -33,7 +33,7 @@ void enqueue(queue_t* q, process_t* p) {
     if (! p) return;
     qnode_t* node = q->node;
     assert(node->last);
-    p->p_status = READY;
+    p->status = READY;
     node->last->process = p;
     node->last->next = qnode_init();
     node->last = node->last->next;

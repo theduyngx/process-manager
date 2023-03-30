@@ -25,7 +25,7 @@ struct process {
     uint32_t time_left;
     uint32_t completed_time;
     unsigned int size;
-    enum status p_status;
+    enum status status;
 };
 typedef struct process process_t;
 

@@ -27,7 +27,7 @@ process_t* process_init(const char *name, uint32_t arrival, uint32_t service_tim
 /* Terminate the process */
 int process_terminate(process_t *p) {
     assert(p);
-    if (p->p_status != FINISHED) {
+    if (p->status != FINISHED) {
         printf("Process %s is not finished!\n", p->name);
         return 1;
     }

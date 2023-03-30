@@ -104,7 +104,7 @@ void SJF_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int qu
         if (running == NULL) {
             running = heap_pop(ready_queue);
             if (running != NULL) {
-                running->p_status = RUNNING;
+                running->status = RUNNING;
                 print_running(timer, running->name, running->time_left);
             }
             else timer += quantum;
@@ -119,7 +119,7 @@ void SJF_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int qu
                 if (deallocate_memory(mem, running) == FAILURE)
                     exit(1);
                 print_finished(timer, running->name, ready_queue->size);
-                running->p_status = FINISHED;
+                running->status = FINISHED;
                 running->completed_time = timer;
                 running = NULL;
             }
@@ -170,7 +170,7 @@ void RR_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int qua
 
         // round-robin
         if (ready_queue->size > 0 && running != NULL) {
-            running->p_status = READY;
+            running->status = READY;
             enqueue(ready_queue, running);
             running = NULL;
         }
@@ -180,7 +180,7 @@ void RR_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int qua
             // if there is no process currently running
             if (running == NULL) {
                 running = dequeue(ready_queue);
-                running->p_status = RUNNING;
+                running->status = RUNNING;
                 print_running(timer, running->name, running->time_left);
             }
             int finished = running->time_left <= quantum;
@@ -192,7 +192,7 @@ void RR_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int qua
                 if (deallocate_memory(mem, running) == FAILURE)
                     exit(1);
                 print_finished(timer, running->name, ready_queue->size);
-                running->p_status = FINISHED;
+                running->status = FINISHED;
                 running->completed_time = timer;
                 running = NULL;
             } else running->time_left -= quantum;
@@ -247,7 +247,7 @@ void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum
         if (running == NULL) {
             running = heap_pop(ready_queue);
             if (running != NULL) {
-                running->p_status = RUNNING;
+                running->status = RUNNING;
                 print_running(timer, running->name, running->time_left);
             }
             else {
@@ -262,7 +262,7 @@ void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum
                 timer += running->time_left;
                 fill_quantum -= running->time_left;
                 print_finished(timer, running->name, ready_queue->size);
-                running->p_status = FINISHED;
+                running->status = FINISHED;
                 running->completed_time = timer;
                 running = NULL;
             }
@@ -320,7 +320,7 @@ void SRTN_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int q
 
         // round-robin
         if (ready_queue->size > 0 && running != NULL) {
-            running->p_status = READY;
+            running->status = READY;
             heap_push(ready_queue, running);
             running = NULL;
         }
@@ -330,7 +330,7 @@ void SRTN_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int q
             // if there is no process currently running
             if (running == NULL) {
                 running = heap_pop(ready_queue);
-                running->p_status = RUNNING;
+                running->status = RUNNING;
                 print_running(timer, running->name, running->time_left);
             }
             int finished = running->time_left <= quantum;
@@ -342,7 +342,7 @@ void SRTN_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int q
                 if (deallocate_memory(mem, running) == FAILURE)
                     exit(1);
                 print_finished(timer, running->name, ready_queue->size);
-                running->p_status = FINISHED;
+                running->status = FINISHED;
                 running->completed_time = timer;
                 running = NULL;
             } else running->time_left -= quantum;

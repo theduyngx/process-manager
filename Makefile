@@ -7,6 +7,7 @@ CFLAGS += $(INC)
 # paths
 SRC_DIR = src
 PRC_DIR = other
+PROCESS = process.c
 OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(SRC_DIR)/%.o, $(wildcard $(SRC_DIR)/*.c))
 
 # executables
@@ -19,7 +20,7 @@ $(EXE): $(EXE_PRG) $(EXE_PRC)
 $(EXE_PRG): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -o $@ -g
 
-$(EXE_PRC): $(PRC_DIR)/process.c
+$(EXE_PRC): $(PRC_DIR)/$(PROCESS)
 	$(CC) $(CFLAGS) $< -o $@ -g
 
 %.o: %.c %.h

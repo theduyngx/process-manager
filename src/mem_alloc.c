@@ -2,14 +2,14 @@
  * Author  : The Duy Nguyen - 1100548
  * File    : mem_alloc.c
  * Purpose : File with functions related to creating memory and allocating memory for processes.
- *
- * PROBLEM: Infinite memory not able to allocate memory sometimes (???)
  */
 
 #include <stdlib.h>
 #include <assert.h>
 #include "mem_alloc.h"
 #include "pseudo_process.h"
+
+#include <stdio.h>
 
 
 /* initialize memory segment / block */
@@ -51,7 +51,7 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
     // if process is too large for memory then kill
     unsigned int p_size = p->size;
     if (p_size > mem->capacity) {
-        p->p_status = FINISHED;
+        p->status = FINISHED;
         process_terminate(p);
     }
     // else if process cannot presently fit memory
@@ -59,9 +59,10 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
 
     // find closest best fit
     int allocated = FAILURE;
-    unsigned int min_size = FINITE_CAPACITY;
+    unsigned int min_size = mem->capacity;
     memseg_t* seg = mem->segments;
     memseg_t* min_seg = seg;
+
     for (int i=0; i < mem->num_segments; i++) {
 
         // if process size fits into current segment size then process can be allocated
@@ -96,7 +97,7 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
     if (diff > 0) {
         // create a new hole
         unsigned int hole_base = (*base) + p_size;
-        assert(hole_base + diff <= mem->capacity);       // assert not exceeding capacity
+        assert(hole_base + diff <= mem->capacity);  // assert not exceeding capacity
         memseg_t* hole = memseg_init(diff, hole_base, HOLE);
         hole->prev = min_seg;
         hole->next = min_seg->next;
