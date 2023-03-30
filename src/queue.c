@@ -12,7 +12,6 @@
 /* initialize node */
 qnode_t* qnode_init() {
     qnode_t* qn = (qnode_t*) malloc(sizeof(qnode_t));
-    qn->last = qn;
     assert(qn);
     return qn;
 }
@@ -22,6 +21,7 @@ qnode_t* qnode_init() {
 queue_t* queue_init() {
     queue_t* q = (queue_t*) malloc(sizeof(queue_t));
     q->node = qnode_init();
+    q->last = q->node;
     q->size = 0;
     assert(q);
     return q;
@@ -30,13 +30,12 @@ queue_t* queue_init() {
 /* enqueue */
 void enqueue(queue_t* q, process_t* p) {
     assert(q);
+    assert(q->last);
     if (! p) return;
-    qnode_t* node = q->node;
-    assert(node->last);
     p->status = READY;
-    node->last->process = p;
-    node->last->next = qnode_init();
-    node->last = node->last->next;
+    q->last->process = p;
+    q->last->next = qnode_init();
+    q->last = q->last->next;
     (q->size)++;
 }
 
@@ -48,11 +47,9 @@ process_t* dequeue(queue_t* q) {
     }
     qnode_t* popped = q->node;
     process_t* p = popped->process;
-    qnode_t** node = &(q->node);
-    (*node)->next->last = (*node)->last;
-    (*node) = (*node)->next;
-    (q->size)--;
+    q->node = popped->next;
     free(popped);
+    (q->size)--;
     return p;
 }
 

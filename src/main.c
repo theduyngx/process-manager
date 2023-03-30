@@ -59,8 +59,8 @@ int main(void) {
 
 
     ///
-    memory_t* mem = memory_init(FINITE_CAPACITY);
-//    memory_t* mem = memory_inf_init();
+//    memory_t* mem = memory_init(FINITE_CAPACITY);
+    memory_t* mem = memory_inf_init();
     RR_scheduler(parr_nf, 4, mem, 3);
     free_memory(mem);
     ///

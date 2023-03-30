@@ -14,13 +14,13 @@
 struct qnode {
     process_t* process;
     struct qnode* next;
-    struct qnode* last;
 };
 typedef struct qnode qnode_t;
 
 /* queue data structure */
 struct queue {
     qnode_t* node;
+    qnode_t* last;
     int size;
 };
 typedef struct queue queue_t;
