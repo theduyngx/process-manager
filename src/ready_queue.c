@@ -1,3 +1,9 @@
+/*
+ * Author  : The Duy Nguyen - 1100548
+ * File    : ready_queue.c
+ * Purpose : Functions related to ready queue abstraction. The ready queue is dynamic, and based on
+ *           scheduling algorithm used, it will use a different data structure to manage processes.
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,6 +11,11 @@
 
 #include "ready_queue.h"
 
+/**
+ * Initialize the ready queue with specified structure.
+ * @param type  structure type
+ * @return      the initialized ready queue
+ */
 ready_queue_t* ready_queue_init(enum structure type) {
     ready_queue_t* rq = (ready_queue_t*) malloc(sizeof(ready_queue_t));
     rq->type = type;
@@ -26,6 +37,11 @@ ready_queue_t* ready_queue_init(enum structure type) {
 }
 
 
+/**
+ * Insert a process to the ready queue.
+ * @param rq  the ready queue
+ * @param p   the process
+ */
 void insert(ready_queue_t* rq, process_t* p) {
     switch(rq->type) {
         case HEAP:
@@ -39,6 +55,12 @@ void insert(ready_queue_t* rq, process_t* p) {
     }
 }
 
+
+/**
+ * Extract process with highest priority from the ready queue.
+ * @param rq  the ready queue
+ * @return    the extracted process
+ */
 process_t* extract(ready_queue_t* rq) {
     process_t* p;
     switch(rq->type) {
@@ -55,6 +77,10 @@ process_t* extract(ready_queue_t* rq) {
 }
 
 
+/**
+ * Free memory of the ready queue.
+ * @param rq  the ready queue
+ */
 void free_ready_queue(ready_queue_t* rq) {
     switch(rq->type) {
         case HEAP:

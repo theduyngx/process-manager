@@ -11,7 +11,14 @@
 #include "pseudo_process.h"
 
 
-/* Initialize the process */
+/**
+ * Initialize a process.
+ * @param name          process name
+ * @param arrival       arrival time
+ * @param service_time  service time (time taken for process to be completed)
+ * @param size          memory requirement for process
+ * @return              the initialized process
+ */
 process_t* process_init(const char *name, uint32_t arrival, uint32_t service_time, unsigned int size) {
     process_t* p = (process_t *) malloc(sizeof(process_t));
     p->name = strdup(name);
@@ -24,7 +31,12 @@ process_t* process_init(const char *name, uint32_t arrival, uint32_t service_tim
     return p;
 }
 
-/* Terminate the process */
+
+/**
+ * Terminate a process.
+ * @param p  given process
+ * @return   0 if termination succeeds, or otherwise
+ */
 int process_terminate(process_t *p) {
     assert(p);
     if (p->status != FINISHED) {
@@ -36,7 +48,12 @@ int process_terminate(process_t *p) {
 }
 
 
-/* Check whether a given process is before another */
+/**
+ * Check whether a given process strictly precedes another in terms of priority.
+ * @param tmp   process to be checked
+ * @param pivot process that's checked against
+ * @return      0 (False) if not preceding, and 1 (True) if preceding
+ */
 int process_precede(process_t* tmp, process_t* pivot) {
     uint32_t tmp_time      = tmp->time_left;
     uint32_t tmp_request   = tmp->arrival;
@@ -52,7 +69,13 @@ int process_precede(process_t* tmp, process_t* pivot) {
     return (tmp_time < pivot_time);
 }
 
-/* Check whether a given process is after another */
+
+/**
+ * Check whether a given process strictly proceeds another in terms of priority.
+ * @param tmp   process to be checked
+ * @param pivot process that's checked against
+ * @return      0 (False) if not proceeding, and 1 (True) if proceeding
+ */
 int process_exceed(process_t* tmp, process_t* pivot) {
     uint32_t tmp_time      = tmp->time_left;
     uint32_t tmp_request   = tmp->arrival;

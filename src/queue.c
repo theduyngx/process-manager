@@ -9,14 +9,20 @@
 #include "queue.h"
 
 
-/* initialize node */
+/**
+ * Initialize a queue's node.
+ * @return  the initialized queue node
+ */
 qnode_t* qnode_init() {
     qnode_t* qn = (qnode_t*) malloc(sizeof(qnode_t));
     assert(qn);
     return qn;
 }
 
-/* initialize queue */
+/**
+ * Initialize a queue.
+ * @return  the initialized queue
+ */
 queue_t* queue_init() {
     queue_t* q = (queue_t*) malloc(sizeof(queue_t));
     q->node = qnode_init();
@@ -26,7 +32,11 @@ queue_t* queue_init() {
     return q;
 }
 
-/* enqueue */
+/**
+ * Enqueue a process to a given queue.
+ * @param q  the given queue
+ * @param p  the process to be enqueued
+ */
 void enqueue(queue_t* q, process_t* p) {
     assert(q);
     assert(q->last);
@@ -38,7 +48,11 @@ void enqueue(queue_t* q, process_t* p) {
     (q->size)++;
 }
 
-/* dequeue */
+/**
+ * Dequeue a process from given queue.
+ * @param q  the given queue
+ * @param p  the dequeued process
+ */
 process_t* dequeue(queue_t* q) {
     if (q->size <= 0) {
         q->size = 0;
@@ -53,7 +67,10 @@ process_t* dequeue(queue_t* q) {
     return p;
 }
 
-/* free queue */
+/**
+ * Free memory of given queue.
+ * @param q  the queue
+ */
 void free_queue(queue_t* q) {
     while (q->size > 0) dequeue(q);
     free(q);

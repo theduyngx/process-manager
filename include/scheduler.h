@@ -15,7 +15,7 @@ void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 
 
-/* additional algorithms */
+/* additional preemptive algorithm */
 __attribute__((unused))
 void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 

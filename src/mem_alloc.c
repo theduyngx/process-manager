@@ -10,7 +10,12 @@
 #include "pseudo_process.h"
 
 
-/* Initialize memory segment / block.
+/**
+ * Initialize memory segment / block.
+ * @param size  segment size
+ * @param base  the base address of segment
+ * @param state the segment state - HOLE or PROCESS (unoccupied or occupied)
+ * @return
  */
 memseg_t* memseg_init(unsigned int size, unsigned int base, enum segment_state state) {
     memseg_t* memseg = (memseg_t*) malloc(sizeof(memseg_t));
@@ -21,7 +26,11 @@ memseg_t* memseg_init(unsigned int size, unsigned int base, enum segment_state s
     return memseg;
 }
 
-/* Initialize logical memory with limited capacity.
+
+/**
+ * Initialize logical memory with limited capacity.
+ * @param capacity  the provided limited capacity of memory
+ * @return          the memory
  */
 memory_t* memory_init(unsigned int capacity) {
     memory_t* mem = (memory_t*) malloc(sizeof(memory_t));
@@ -34,7 +43,10 @@ memory_t* memory_init(unsigned int capacity) {
     return mem;
 }
 
-/* Initialize logical memory with infinite memory.
+
+/**
+ * Initialize logical memory with infinite memory.
+ * @return  the memory
  */
 memory_t* memory_inf_init() {
     memory_t* mem = memory_init(0xffffffff);
@@ -45,8 +57,12 @@ memory_t* memory_inf_init() {
 }
 
 
-/* Allocate memory for process;
- * returns SUCCESS (0) or FAILURE (1) to indicate whether allocation succeeds or not
+/**
+ * Allocate memory for process.
+ * @param mem   the logical memory
+ * @param p     the process
+ * @param base  (output) base address for allocation
+ * @return      0 if succeeds and otherwise if not
  */
 int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
     // if process is too large for memory then kill
@@ -110,8 +126,11 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
 }
 
 
-/* Deallocate memory of process;
- * returns SUCCESS (0) or FAILURE (1) to indicate whether de-allocation succeeds or not
+/**
+ * Deallocate memory of a process.
+ * @param mem  logical memory
+ * @param p    process
+ * @return     0 if succeeds and otherwise if not
  */
 int deallocate_memory(memory_t* mem, process_t* p) {
     if (mem->requirement == INF) return SUCCESS;
@@ -163,7 +182,10 @@ int deallocate_memory(memory_t* mem, process_t* p) {
 }
 
 
-/* Free memory data structure */
+/**
+ * Free memory data structure.
+ * @param mem  the memory to be freed
+ */
 void free_memory(memory_t* mem) {
     while (mem->num_segments > 1) {
         mem->segments = mem->segments->next;

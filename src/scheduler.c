@@ -58,20 +58,29 @@ void print_finished(uint32_t timer, process_t* p, int proc_remaining) {
  * @param timer             the timer
  * @param proc_remaining    number of processes remaining
  */
-void finish_process(process_t* running, memory_t* mem, process_t** finished, int *index,
+void finish_process(process_t** running, memory_t* mem, process_t** finished, int *index,
                     uint32_t timer, int proc_remaining)
 {
-    running->time_left = 0;
-    if (deallocate_memory(mem, running) == FAILURE)
-        exit(1);
-    print_finished(timer, running, proc_remaining);
-    running->status = FINISHED;
-    running->completed_time = timer;
-    finished[(*index)++] = running;
-    running = NULL;
+    (*running)->time_left = 0;
+    if (deallocate_memory(mem, *running) == FAILURE) {
+        exit(3);
+    }
+    print_finished(timer, *running, proc_remaining);
+    (*running)->status = FINISHED;
+    (*running)->completed_time = timer;
+    finished[(*index)++] = *running;
+    *running = NULL;
 }
 
 
+/**
+ * Update the input and ready queues; called after each quantum.
+ * @param buffer        the process buffer
+ * @param mem           the memory for processes to be allocated
+ * @param input_queue   the input queue
+ * @param ready_queue   the ready queue
+ * @param timer         the timer
+ */
 void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_queue_t* ready_queue,
                    uint32_t timer)
 {
@@ -100,16 +109,21 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
 }
 
 
-
-/* print scheduling statistics */
-void print_statistics(process_t* buffer_arr[], int num_process, uint32_t makespan) {
+/**
+ * Print scheduling statistics
+ * @param all_processes the array of all processes; usually obtaining the statistics occurs
+ *                      after processes have been finished so this is the finished array
+ * @param num_process   total number of processes
+ * @param makespan      total amount of time (s) taken to complete all processes in buffer
+ */
+void print_statistics(process_t* all_processes[], int num_process, uint32_t makespan) {
 
     // get required data for statistics
     double total_turnaround = 0;
     double total_overhead = 0;
     double max_overhead = 0;
     for (int i=0; i < num_process; i++) {
-        process_t* p = buffer_arr[i];
+        process_t* p = all_processes[i];
         uint32_t turnaround = p->completed_time - p->arrival;
         total_turnaround += turnaround;
         double overhead = (double) turnaround / p->service_time;
@@ -132,7 +146,14 @@ void print_statistics(process_t* buffer_arr[], int num_process, uint32_t makespa
 }
 
 
-/* Shortest job first scheduler */
+/* ---------------------------- SCHEDULERS ---------------------------- */
+
+/**
+ * Shortest job first scheduler, scheduling processes using the heap data structure.
+ * @param buffer    all input processes
+ * @param mem       the memory
+ * @param quantum   quantum length (s)
+ */
 void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     ready_queue_t* ready_queue = ready_queue_init(HEAP);
@@ -163,9 +184,10 @@ void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
         // otherwise, we run the current process
         else {
             timer += quantum;
+
             // job finishes within given quantum
             if (running->time_left <= quantum)
-                finish_process(running, mem, finished, &index, timer,
+                finish_process(&running, mem, finished, &index, timer,
                                ready_queue->size + input_queue->size);
             else running->time_left -= quantum;
         }
@@ -181,7 +203,12 @@ void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
 }
 
 
-/* Round-robin */
+/**
+ * Round-robin scheduler - preemptive. The scheduler uses queue data structure to manage processes.
+ * @param buffer    all processes
+ * @param mem       the memory
+ * @param quantum   quantum length
+ */
 void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     ready_queue_t* ready_queue = ready_queue_init(QUEUE);
@@ -219,7 +246,7 @@ void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
 
             // if, or otherwise, the process has completed its execution
             if (completed)
-                finish_process(running, mem, finished, &index, timer,
+                finish_process(&running, mem, finished, &index, timer,
                                ready_queue->size + input_queue->size);
             else running->time_left -= quantum;
         }
@@ -238,10 +265,12 @@ void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
 }
 
 
-/* ------------------------ OTHER SCHEDULING ALGORITHMS -------------------------- */
-
-
-/* Shortest remaining time next scheduling - with memory allocation.
+/**
+ * Shortest remaining time next scheduler - preemptive. The scheduler uses heap to manage processes.
+ * It always executes the job with least service time left, and with preemption.
+ * @param buffer    all processes
+ * @param mem       the memory
+ * @param quantum   quantum length
  */
 __attribute__((unused))
 
@@ -282,7 +311,7 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
 
             // if, or otherwise, the process has completed its execution
             if (completed)
-                finish_process(running, mem, finished, &index, timer,
+                finish_process(&running, mem, finished, &index, timer,
                                ready_queue->size + input_queue->size);
             else running->time_left -= quantum;
         }
