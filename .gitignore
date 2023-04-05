@@ -3,5 +3,6 @@ cmake-build-debug/
 *.o
 *.json
 allocate
-process
+./process
+*.out
 *.txt

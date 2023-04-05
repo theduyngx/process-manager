@@ -28,8 +28,8 @@ void print_running(uint32_t timer, const char* name, uint32_t time_left) {
 }
 
 /* print finished process */
-void print_finished(uint32_t timer, const char* name, int queue_size) {
-    printf("%u,FINISHED,process_name=%s,proc_remaining=%d\n", timer, name, queue_size);
+void print_finished(uint32_t timer, const char* name, int proc_remaining) {
+    printf("%u,FINISHED,process_name=%s,proc_remaining=%d\n", timer, name, proc_remaining);
 }
 
 /* print scheduling statistics */
@@ -60,9 +60,6 @@ void print_statistics(process_t* buffer_arr[], int num_process, uint32_t makespa
 
     // makespan
     printf("Makespan %u\n", makespan);
-
-    // cleanup
-    clear_buffer(buffer_arr, num_process);
 }
 
 
@@ -71,6 +68,11 @@ void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
     uint32_t timer = 0;
+
+    ///
+    process_t* finished[buffer->size];
+    int index = 0;
+    ///
 
     process_t* running = NULL;
     int size_condition = 1;
@@ -117,19 +119,26 @@ void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
                 running->time_left = 0;
                 if (deallocate_memory(mem, running) == FAILURE)
                     exit(1);
-                print_finished(timer, running->name, ready_queue->size);
+                int proc_remaining = ready_queue->size + input_queue->size;
+                print_finished(timer, running->name, proc_remaining);
                 running->status = FINISHED;
                 running->completed_time = timer;
+                ///
+                finished[index++] = running;
+                ///
                 running = NULL;
             }
             else running->time_left -= quantum;
         }
         size_condition = ready_queue->size > 0;
     }
+    // print statistics
+    print_statistics(finished, index, timer);
+
     // free memory
     free_queue(input_queue);
     free_heap(ready_queue);
-//    print_statistics(buffer, size, timer);
+    clear_buffer(finished, index);
 }
 
 
@@ -138,6 +147,11 @@ void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     queue_t* ready_queue = queue_init();
     uint32_t timer = 0;
+
+    ///
+    process_t* finished[buffer->size];
+    int index = 0;
+    ///
 
     process_t* running = NULL;
     int size_condition = 1;
@@ -181,17 +195,21 @@ void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
                 running->status = RUNNING;
                 print_running(timer, running->name, running->time_left);
             }
-            int finished = running->time_left <= quantum;
+            int completed = running->time_left <= quantum;
             timer += quantum;
 
-            // if, or otherwise, the process has finished its run
-            if (finished) {
+            // if, or otherwise, the process has completed its execution
+            if (completed) {
                 running->time_left = 0;
                 if (deallocate_memory(mem, running) == FAILURE)
                     exit(1);
-                print_finished(timer, running->name, ready_queue->size);
+                int proc_remaining = ready_queue->size + input_queue->size;
+                print_finished(timer, running->name, proc_remaining);
                 running->status = FINISHED;
                 running->completed_time = timer;
+                ///
+                finished[index++] = running;
+                ///
                 running = NULL;
             } else running->time_left -= quantum;
         }
@@ -200,10 +218,13 @@ void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
         else timer += quantum;
         size_condition = ready_queue->size > 0;
     }
+    // print statistics
+    print_statistics(finished, index, timer);
+
     // free memory
     free_queue(input_queue);
     free_queue(ready_queue);
-//    print_statistics(buffer, size, timer);
+    clear_buffer(finished, index);
 }
 
 
@@ -218,6 +239,11 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
     uint32_t timer = 0;
+
+    ///
+    process_t* finished[buffer->size];
+    int index = 0;
+    ///
 
     process_t* running = NULL;
     int size_condition = 1;
@@ -252,7 +278,7 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
             heap_push(ready_queue, running);
             running = NULL;
         }
-            // if there are processes in ready queue, or currently running process exists
+        // if there are processes in ready queue, or currently running process exists
         else if (ready_queue->size > 0 || running != NULL) {
 
             // if there is no process currently running
@@ -261,27 +287,34 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
                 running->status = RUNNING;
                 print_running(timer, running->name, running->time_left);
             }
-            int finished = running->time_left <= quantum;
+            int completed = running->time_left <= quantum;
             timer += quantum;
 
-            // if, or otherwise, the process has finished its run
-            if (finished) {
+            // if, or otherwise, the process has completed its execution
+            if (completed) {
                 running->time_left = 0;
                 if (deallocate_memory(mem, running) == FAILURE)
                     exit(1);
-                print_finished(timer, running->name, ready_queue->size);
+                int proc_remaining = ready_queue->size + input_queue->size;
+                print_finished(timer, running->name, proc_remaining);
                 running->status = FINISHED;
                 running->completed_time = timer;
+                ///
+                finished[index++] = running;
+                ///
                 running = NULL;
             } else running->time_left -= quantum;
         }
 
-            // otherwise - no process running nor any process in ready queue
+        // otherwise - no process running nor any process in ready queue
         else timer += quantum;
         size_condition = ready_queue->size > 0;
     }
+    // print statistics
+    print_statistics(finished, index, timer);
+
     // free memory
     free_queue(input_queue);
     free_heap(ready_queue);
-//    print_statistics(buffer, size, timer);
+    clear_buffer(finished, index);
 }
