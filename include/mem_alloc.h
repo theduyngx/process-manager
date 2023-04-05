@@ -21,7 +21,7 @@
 // whether memory is infinite or not
 enum capacity_requirement {
     INF,
-    FIN,
+    FIN
 };
 
 // possible states of a memory segment

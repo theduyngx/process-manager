@@ -13,6 +13,8 @@
 #include "scheduler.h"
 #include "mem_alloc.h"
 
+#include "ready_queue.h"
+
 #define INLINE_COUNT 4
 #define MAX_NAME_LEN 8
 
@@ -24,9 +26,33 @@ void print_empty_flag(char* flag) {
 }
 
 
+void main() {
+    ready_queue_t* rq = ready_queue_init(HEAP);
+    printf("%d\n", rq->size);
+
+    ///////
+    const char* names[SIZE] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6",
+                               "P7", "P8", "P9", "P10", "P11", "P12",
+                               "P13", "P14"};
+    int tls[SIZE] = {15, 90, 57, 74, 27, 65, 52, 123, 85,
+                     33, 50, 53, 63, 8, 103};
+    int req[SIZE+5] = {0, 14, 16, 17, 42, 44, 46, 53, 62,
+                       65, 70, 76, 77, 97, 100};
+    process_t* parr[SIZE];
+    for (int i=0; i < SIZE; i++) {
+        parr[i] = process_init(names[i], req[i], tls[i], 2);
+        insert(rq, parr[i]);
+    }
+    while (rq->size > 0) {
+        process_t* p = extract(rq);
+        printf("%s\n", p->name);
+    }
+}
+
+
 /* Main entry to program.
  */
-int main(int argc, char* argv[]) {
+int fuck(int argc, char* argv[]) {
     char* f_flag = NULL;
     char* s_flag = NULL;
     char* m_flag = NULL;
