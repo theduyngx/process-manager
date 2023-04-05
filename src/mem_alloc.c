@@ -9,10 +9,9 @@
 #include "mem_alloc.h"
 #include "pseudo_process.h"
 
-#include <stdio.h>
 
-
-/* initialize memory segment / block */
+/* Initialize memory segment / block.
+ */
 memseg_t* memseg_init(unsigned int size, unsigned int base, enum segment_state state) {
     memseg_t* memseg = (memseg_t*) malloc(sizeof(memseg_t));
     assert(memseg);
@@ -22,7 +21,8 @@ memseg_t* memseg_init(unsigned int size, unsigned int base, enum segment_state s
     return memseg;
 }
 
-/* initialize logical memory with limited capacity */
+/* Initialize logical memory with limited capacity.
+ */
 memory_t* memory_init(unsigned int capacity) {
     memory_t* mem = (memory_t*) malloc(sizeof(memory_t));
     assert(mem);
@@ -34,7 +34,8 @@ memory_t* memory_init(unsigned int capacity) {
     return mem;
 }
 
-/* initialize logical memory with infinite memory */
+/* Initialize logical memory with infinite memory.
+ */
 memory_t* memory_inf_init() {
     memory_t* mem = memory_init(0xffffffff);
     assert(mem);
@@ -44,7 +45,7 @@ memory_t* memory_inf_init() {
 }
 
 
-/* allocate memory for process;
+/* Allocate memory for process;
  * returns SUCCESS (0) or FAILURE (1) to indicate whether allocation succeeds or not
  */
 int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
@@ -109,7 +110,7 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
 }
 
 
-/* deallocate memory of process;
+/* Deallocate memory of process;
  * returns SUCCESS (0) or FAILURE (1) to indicate whether de-allocation succeeds or not
  */
 int deallocate_memory(memory_t* mem, process_t* p) {
@@ -162,7 +163,7 @@ int deallocate_memory(memory_t* mem, process_t* p) {
 }
 
 
-/* free memory data structure */
+/* Free memory data structure */
 void free_memory(memory_t* mem) {
     while (mem->num_segments > 1) {
         mem->segments = mem->segments->next;

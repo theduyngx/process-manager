@@ -1,69 +1,118 @@
-#include "heap.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
+
+#include "queue.h"
 #include "scheduler.h"
 #include "mem_alloc.h"
 
-
-int main(void) {
-
-    ///////
-    const char* names[SIZE] = {"P0", "P1", "P2", "P3", "P4", "P5", "P6",
-                               "P7", "P8", "P9", "P10", "P11", "P12",
-                               "P13", "P14"};
-    int tls[SIZE] = {15, 90, 57, 74, 27, 65, 52, 123, 85,
-                     33, 50, 53, 63, 8, 103};
-    int req[SIZE+5] = {0, 14, 16, 17, 42, 44, 46, 53, 62,
-                       65, 70, 76, 77, 97, 100};
-    process_t* parr[SIZE];
-    for (int i=0; i < SIZE; i++)
-        parr[i] = process_init(names[i], req[i], tls[i], 2);
+#define INLINE_COUNT 4
+#define MAX_NAME_LEN 8
 
 
-    ///////
-    const char* names2[4] = {"P1", "P2", "P5", "P4"};
-    int tls2[4] = {50, 30, 80, 10};
-    int req2[4] = {0, 10, 40, 50};
-    process_t* parr2[4];
-    for (int i=0; i < 4; i++)
-        parr2[i] = process_init(names2[i], req2[i], tls2[i], 8);
+void print_empty_flag(char* flag) {
+    fprintf(stderr, "Flag %s must be included\n", flag);
+}
 
 
-    ///////
-    const char* names3[2] = {"P1", "P2"};
-    int tls3[2] = {100, 100};
-    int req3[2] = {0, 500};
-    process_t* parr3[2];
-    for (int i=0; i < 2; i++)
-        parr3[i] = process_init(names3[i], req3[i], tls3[i], 2);
+int main(int argc, char* argv[]) {
+    char* f_flag = NULL;
+    char* s_flag = NULL;
+    char* m_flag = NULL;
+    char* q_flag = NULL;
+    int c;
+    opterr = 0;
+
+    // check input flags
+    while ((c = getopt(argc, argv, "f:s:m:q:")) != -1) {
+        switch (c) {
+            case 'f':
+                f_flag = optarg;
+                break;
+            case 's':
+                s_flag = optarg;
+                break;
+            case 'm':
+                m_flag = optarg;
+                break;
+            case 'q':
+                q_flag = optarg;
+                break;
+            case '?':
+                fprintf(stderr, "Error in option -%c. Aborting...\n", optopt);
+            default:
+                exit(1);
+        }
+    }
+    // check if any flag is left empty
+    if (f_flag == NULL) {
+        print_empty_flag("-f");
+        exit(1);
+    }
+    if (s_flag == NULL) {
+        print_empty_flag("-s");
+        exit(1);
+    }
+    if (m_flag == NULL) {
+        print_empty_flag("-m");
+        exit(1);
+    }
+    if (q_flag == NULL) {
+        print_empty_flag("-q");
+        exit(1);
+    }
+
+    // open file, check for file flag correctness
+    if (! strstr(f_flag, ".txt")) {
+        fprintf(stderr, "Invalid file extension for flag -f: %s\n", f_flag);
+        exit(1);
+    }
+    FILE *input = fopen(f_flag, "r");
+    if (input == NULL) {
+        fprintf(stderr, "Invalid argument for flag -f: file %s doesn't exist\n", f_flag);
+        exit(1);
+    }
+
+    // read the file by line
+    queue_t* buffer = queue_init();
+    int request_time, service_time, size;
+    char name[MAX_NAME_LEN];
+    while (fscanf(input, "%d %s %d %d", &request_time, name, &service_time, &size)
+           == INLINE_COUNT)
+    {
+        process_t* p = process_init(name, request_time, service_time, size);
+        enqueue(buffer, p);
+    }
+    fclose(input);
 
 
-    ///////
-    const char* name_nf[4] = {"P0", "P1", "P2", "P4"};
-    int req_nf[4] = {0, 30, 60, 100};
-    int tls_nf[4] = {100, 100, 50, 30};
-    int mem_nf[4] = {1024, 512, 512, 216};
-    process_t* parr_nf[4];
-    for (int i=0; i < 4; i++)
-        parr_nf[i] = process_init(name_nf[i], req_nf[i], tls_nf[i],
-                                  mem_nf[i]);
+    // check for memory flag value correctness
+    memory_t* mem;
+    if      (strcmp(m_flag, "infinite") == 0) mem = memory_inf_init();
+    else if (strcmp(m_flag, "best-fit") == 0) mem = memory_init(FINITE_CAPACITY);
+    else {
+        fprintf(stderr, "Invalid argument for flag -m: %s\n", m_flag);
+        exit(1);
+    }
 
+    // check quantum flag value correctness
+    int quantum = atoi(q_flag);   // NOLINT(cert-err34-c)
+    if (quantum <= 0) {
+        fprintf(stderr, "Invalid argument for flag -q: %s\n", q_flag);
+        free_memory(mem);
+        exit(1);
+    }
 
-    ///////
-    const char* name_f[3] = {"P4", "P2", "P1"};
-    int req_f[3] = {0, 29, 99};
-    int tls_f[3] = {30, 40, 20};
-    int mem_f[3] = {16, 64, 32};
-    process_t* parr_f[3];
-    for (int i=0; i < 3; i++)
-        parr_f[i] = process_init(name_f[i], req_f[i], tls_f[i],
-                                 mem_f[i]);
-
-
-    ///
-//    memory_t* mem = memory_init(FINITE_CAPACITY);
-    memory_t* mem = memory_inf_init();
-    RR_scheduler(parr_nf, 4, mem, 3);
-    free_memory(mem);
-    ///
+    // check for scheduling algorithm flag
+    if      (strcmp(s_flag, "SJF" ) == 0) SJF_scheduler (buffer, mem, quantum);
+    else if (strcmp(s_flag, "RR"  ) == 0) RR_scheduler  (buffer, mem, quantum);
+    else if (strcmp(s_flag, "SRTN") == 0) SRTN_scheduler(buffer, mem, quantum);
+    else {
+        fprintf(stderr, "Invalid argument for flag -s: %s\n", s_flag);
+        free_memory(mem);
+        exit(1);
+    }
 
     return 0;
 }

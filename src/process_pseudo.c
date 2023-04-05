@@ -14,7 +14,7 @@
 /* Initialize the process */
 process_t* process_init(const char *name, uint32_t arrival, uint32_t service_time, unsigned int size) {
     process_t* p = (process_t *) malloc(sizeof(process_t));
-    p->name = name;
+    p->name = strdup(name);
     p->arrival = arrival;
     p->service_time = service_time;
     p->time_left = p->service_time;
@@ -44,13 +44,12 @@ int process_precede(process_t* tmp, process_t* pivot) {
     uint32_t pivot_time    = pivot->time_left;
     uint32_t pivot_request = pivot->arrival;
     const char* pivot_name = pivot->name;
-    if (tmp_time < pivot_time) return 1;
-    else if (tmp_time == pivot_time) {
+    if (tmp_time == pivot_time) {
         if (tmp_request < pivot_request) return 1;
         else if (tmp_request == pivot_request)
-            if (strcmp(tmp_name, pivot_name) < 0) return 1;
+            return (strcmp(tmp_name, pivot_name) < 0);
     }
-    return 0;
+    return (tmp_time < pivot_time);
 }
 
 /* Check whether a given process is after another */
@@ -61,11 +60,10 @@ int process_exceed(process_t* tmp, process_t* pivot) {
     uint32_t pivot_time    = pivot->time_left;
     uint32_t pivot_request = pivot->arrival;
     const char* pivot_name = pivot->name;
-    if (tmp_time > pivot_time) return 1;
-    else if (tmp_time == pivot_time) {
+    if (tmp_time == pivot_time) {
         if (tmp_request > pivot_request) return 1;
         else if (tmp_request == pivot_request)
-            if (strcmp(tmp_name, pivot_name) > 0) return 1;
+            return (strcmp(tmp_name, pivot_name) > 0);
     }
-    return 0;
+    return (tmp_time > pivot_time);
 }

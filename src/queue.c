@@ -16,7 +16,6 @@ qnode_t* qnode_init() {
     return qn;
 }
 
-
 /* initialize queue */
 queue_t* queue_init() {
     queue_t* q = (queue_t*) malloc(sizeof(queue_t));
@@ -50,6 +49,7 @@ process_t* dequeue(queue_t* q) {
     q->node = popped->next;
     free(popped);
     (q->size)--;
+    assert(q->size >= 0);
     return p;
 }
 

@@ -33,14 +33,14 @@ void print_finished(uint32_t timer, const char* name, int queue_size) {
 }
 
 /* print scheduling statistics */
-void print_statistics(process_t* buffer[], int num_process, uint32_t makespan) {
+void print_statistics(process_t* buffer_arr[], int num_process, uint32_t makespan) {
 
     // get required data for statistics
     double total_turnaround = 0;
     double total_overhead = 0;
     double max_overhead = 0;
     for (int i=0; i < num_process; i++) {
-        process_t* p = buffer[i];
+        process_t* p = buffer_arr[i];
         uint32_t turnaround = p->completed_time - p->arrival;
         total_turnaround += turnaround;
         double overhead = (double) turnaround / p->service_time;
@@ -62,32 +62,31 @@ void print_statistics(process_t* buffer[], int num_process, uint32_t makespan) {
     printf("Makespan %u\n", makespan);
 
     // cleanup
-    clear_buffer(buffer, num_process);
+    clear_buffer(buffer_arr, num_process);
 }
 
 
 /* Shortest job first scheduler */
-void SJF_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int quantum) {
+void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
     uint32_t timer = 0;
-    int i = 0;
 
     process_t* running = NULL;
     int size_condition = 1;
-    while (i < size || running != NULL || size_condition) {
+    while (buffer->size > 0 || running != NULL || size_condition) {
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
-        int start = i;
+        int i = 0;
         int init_size = input_queue->size;
-        while (i < size && buffer[i]->arrival <= timer) {
-            process_t* p = buffer[i];
+        while (buffer->size > 0 && buffer->node->process->arrival <= timer) {
+            process_t* p = dequeue(buffer);
             enqueue(input_queue, p);
             i++;
         }
 
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < init_size + i-start; j++) {
+        for (int j=0; j < init_size + i; j++) {
             process_t* p = input_queue->node->process;
 
             // memory allocation - success means getting pushed to input queue
@@ -130,32 +129,31 @@ void SJF_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int qu
     // free memory
     free_queue(input_queue);
     free_heap(ready_queue);
-    print_statistics(buffer, size, timer);
+//    print_statistics(buffer, size, timer);
 }
 
 
 /* Round-robin */
-void RR_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int quantum) {
+void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     queue_t* ready_queue = queue_init();
     uint32_t timer = 0;
-    int i = 0;
 
     process_t* running = NULL;
     int size_condition = 1;
-    while (i < size || running != NULL || size_condition) {
+    while (buffer->size > 0 || running != NULL || size_condition) {
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
-        int start = i;
         int init_size = input_queue->size;
-        while (i < size && buffer[i]->arrival <= timer) {
-            process_t* p = buffer[i];
+        int i = 0;
+        while (buffer->size > 0 && buffer->node->process->arrival <= timer) {
+            process_t* p = dequeue(buffer);
             enqueue(input_queue, p);
             i++;
         }
 
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < init_size + i-start; j++) {
+        for (int j=0; j < init_size + i; j++) {
             process_t* p = input_queue->node->process;
 
             // memory allocation - success means getting pushed to input queue
@@ -205,107 +203,37 @@ void RR_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int qua
     // free memory
     free_queue(input_queue);
     free_queue(ready_queue);
-    print_statistics(buffer, size, timer);
+//    print_statistics(buffer, size, timer);
 }
 
 
 /* ------------------------ OTHER SCHEDULING ALGORITHMS -------------------------- */
 
 
-/* Shortest job first quantum optimized scheduler - WITHOUT MEMORY ALLOCATION.
- */
-__attribute__((unused))
-
-void SJF_scheduler_optimized(process_t* buffer[], int size, unsigned int quantum) {
-    queue_t* input_queue = queue_init();
-    heap_t* ready_queue = heap_init();
-    uint32_t timer = 0;
-    int i = 0;
-    // fill quantum is the hole in the quantum yet to be filled
-    uint32_t fill_quantum = quantum;
-
-    process_t* running = NULL;
-    int size_condition = 1;
-    while (i < size || running != NULL || size_condition) {
-
-        // while all processes in buffer arrive within a quantum, we enqueue them to input queue
-        // NOTE: modulo operation implies we only check this after a quantum has fully elapsed
-        int start = i;
-        while (i < size && timer % quantum == 0 && buffer[i]->arrival <= timer) {
-            process_t* p = buffer[i];
-            enqueue(input_queue, p);
-            i++;
-        }
-
-        // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < i-start; j++) {
-            process_t* p = dequeue(input_queue);
-            heap_push(ready_queue, p);
-        }
-
-        // now we run shortest job process by decrementing quantum each time
-        if (running == NULL) {
-            running = heap_pop(ready_queue);
-            if (running != NULL) {
-                running->status = RUNNING;
-                print_running(timer, running->name, running->time_left);
-            }
-            else {
-                timer += fill_quantum;
-                fill_quantum = quantum;
-            }
-        }
-        else {
-
-            // job finishes within given quantum
-            if (running->time_left <= fill_quantum) {
-                timer += running->time_left;
-                fill_quantum -= running->time_left;
-                print_finished(timer, running->name, ready_queue->size);
-                running->status = FINISHED;
-                running->completed_time = timer;
-                running = NULL;
-            }
-            else {
-                running->time_left -= fill_quantum;
-                timer += fill_quantum;
-                fill_quantum = quantum;
-            }
-        }
-        size_condition = ready_queue->size > 0;
-    }
-    // free memory
-    free_queue(input_queue);
-    free_heap(ready_queue);
-    print_statistics(buffer, size, timer);
-}
-
-
 /* Shortest remaining time next scheduling - with memory allocation.
  */
 __attribute__((unused))
 
-void SRTN_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int quantum) {
+void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     queue_t* input_queue = queue_init();
     heap_t* ready_queue = heap_init();
     uint32_t timer = 0;
-    int i = 0;
 
     process_t* running = NULL;
     int size_condition = 1;
-    while (i < size || running != NULL || size_condition) {
+    while (buffer->size > 0 || running != NULL || size_condition) {
 
         // while all processes in buffer arrive within a quantum, we enqueue them to input queue
-        int start = i;
         int init_size = input_queue->size;
-        while (i < size && buffer[i]->arrival <= timer) {
-            process_t* p = buffer[i];
+        int i = 0;
+        while (buffer->size > 0 && buffer->node->process->arrival <= timer) {
+            process_t* p = dequeue(buffer);
             enqueue(input_queue, p);
             i++;
         }
 
         // we iterate through input queue and insert each process to the ready queue
-        for (int j=0; j < init_size + i-start; j++) {
+        for (int j=0; j < init_size + i; j++) {
             process_t* p = input_queue->node->process;
 
             // memory allocation - success means getting pushed to input queue
@@ -355,5 +283,5 @@ void SRTN_scheduler(process_t* buffer[], int size, memory_t* mem, unsigned int q
     // free memory
     free_queue(input_queue);
     free_heap(ready_queue);
-    print_statistics(buffer, size, timer);
+//    print_statistics(buffer, size, timer);
 }
