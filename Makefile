@@ -9,6 +9,9 @@ RR		= -s RR
 SJF		= -s SJF
 BF 		= -m best-fit
 INF		= -m infinite
+Q1		= -q 1
+Q2		= -q 2
+Q3		= -q 3
 
 # paths
 SRC_DIR = src
@@ -43,25 +46,25 @@ clean:
 	rm -f $(EXE_PRG) $(EXE_PRC) $(SRC_DIR)/*.o $(PRC_DIR)/*.out
 
 two-processes-1:
-	./allocate -f $(T2_DIR)/two-processes.txt $(RR) $(INF) -q 1 > $(PRC_DIR)/$@.out
+	./allocate -f $(T2_DIR)/two-processes.txt $(RR) $(INF) $(Q1) > $(PRC_DIR)/$@.out
 	diff $(PRC_DIR)/$@.out $(T2_DIR)/$@.out || true
 
 two-processes-3:
-	./allocate -f $(T2_DIR)/two-processes.txt $(RR) $(INF) -q 3 > $(PRC_DIR)/$@.out
+	./allocate -f $(T2_DIR)/two-processes.txt $(RR) $(INF) $(Q3) > $(PRC_DIR)/$@.out
 	diff $(PRC_DIR)/$@.out $(T2_DIR)/$@.out || true
 
 simple-rr:
-	./allocate -f $(T2_DIR)/simple.txt $(RR) $(INF) -q 3 > $(PRC_DIR)/$@.out
+	./allocate -f $(T2_DIR)/simple.txt $(RR) $(INF) $(Q3) > $(PRC_DIR)/$@.out
 	diff $(PRC_DIR)/$@.out $(T2_DIR)/$@.out || true
 
 non-fit-rr:
-	./allocate -f $(T3_DIR)/non-fit.txt $(RR) $(BF) -q 3 > $(PRC_DIR)/$@.out
+	./allocate -f $(T3_DIR)/non-fit.txt $(RR) $(BF) $(Q3) > $(PRC_DIR)/$@.out
 	diff $(PRC_DIR)/$@.out $(T3_DIR)/$@.out || true
 
 non-fit-sjf:
-	./allocate -f $(T3_DIR)/non-fit.txt $(SJF) $(BF) -q 3 > $(PRC_DIR)/$@.out
+	./allocate -f $(T3_DIR)/non-fit.txt $(SJF) $(BF) $(Q3) > $(PRC_DIR)/$@.out
 	diff $(PRC_DIR)/$@.out $(T3_DIR)/$@.out || true
 
 simple-bestfit:
-	./allocate -f $(T3_DIR)/simple.txt $(RR) $(BF) -q 3 > $(PRC_DIR)/$@.out
+	./allocate -f $(T3_DIR)/simple.txt $(RR) $(BF) $(Q3) > $(PRC_DIR)/$@.out
 	diff $(PRC_DIR)/$@.out $(T3_DIR)/$@.out || true

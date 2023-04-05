@@ -1,3 +1,9 @@
+/*
+ * Author  : The Duy Nguyen - 1100548
+ * File    : main.c
+ * Purpose : The main program, receiving input from user.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,11 +17,15 @@
 #define MAX_NAME_LEN 8
 
 
+/* Printing to standard error - since no flag can be empty when running the program.
+ */
 void print_empty_flag(char* flag) {
     fprintf(stderr, "Flag %s must be included\n", flag);
 }
 
 
+/* Main entry to program.
+ */
 int main(int argc, char* argv[]) {
     char* f_flag = NULL;
     char* s_flag = NULL;
