@@ -19,12 +19,13 @@ T1_DIR  = cases/task1
 T2_DIR  = cases/task2
 T3_DIR  = cases/task3
 T4_DIR  = cases/task4
+OUT_DIR = out
 PRC_DIR = process
 PROCESS = process.c
 OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(SRC_DIR)/%.o, $(wildcard $(SRC_DIR)/*.c))
 
 # executables
-EXE = run
+EXE 	= run
 EXE_PRG = allocate
 EXE_PRC = process
 
@@ -43,28 +44,28 @@ $(EXE_PRC): $(PRC_DIR)/$(PROCESS)
 
 # other commands
 clean:
-	rm -f $(EXE_PRG) $(EXE_PRC) $(SRC_DIR)/*.o $(PRC_DIR)/*.out
+	rm -f $(EXE_PRG) $(EXE_PRC) $(SRC_DIR)/*.o $(OUT_DIR)/*.out
 
 two-processes-1:
-	./allocate -f $(T2_DIR)/two-processes.txt $(RR) $(INF) $(Q1) > $(PRC_DIR)/$@.out
-	diff $(PRC_DIR)/$@.out $(T2_DIR)/$@.out || true
+	./$(EXE_PRG) -f $(T2_DIR)/two-processes.txt $(RR) $(INF) $(Q1) > $(OUT_DIR)/$@.out
+	diff $(OUT_DIR)/$@.out $(T2_DIR)/$@.out || true
 
 two-processes-3:
-	./allocate -f $(T2_DIR)/two-processes.txt $(RR) $(INF) $(Q3) > $(PRC_DIR)/$@.out
-	diff $(PRC_DIR)/$@.out $(T2_DIR)/$@.out || true
+	./$(EXE_PRG) -f $(T2_DIR)/two-processes.txt $(RR) $(INF) $(Q3) > $(OUT_DIR)/$@.out
+	diff $(OUT_DIR)/$@.out $(T2_DIR)/$@.out || true
 
 simple-rr:
-	./allocate -f $(T2_DIR)/simple.txt $(RR) $(INF) $(Q3) > $(PRC_DIR)/$@.out
-	diff $(PRC_DIR)/$@.out $(T2_DIR)/$@.out || true
+	./$(EXE_PRG) -f $(T2_DIR)/simple.txt $(RR) $(INF) $(Q3) > $(OUT_DIR)/$@.out
+	diff $(OUT_DIR)/$@.out $(T2_DIR)/$@.out || true
 
 non-fit-rr:
-	./allocate -f $(T3_DIR)/non-fit.txt $(RR) $(BF) $(Q3) > $(PRC_DIR)/$@.out
-	diff $(PRC_DIR)/$@.out $(T3_DIR)/$@.out || true
+	./$(EXE_PRG) -f $(T3_DIR)/non-fit.txt $(RR) $(BF) $(Q3) > $(OUT_DIR)/$@.out
+	diff $(OUT_DIR)/$@.out $(T3_DIR)/$@.out || true
 
 non-fit-sjf:
-	./allocate -f $(T3_DIR)/non-fit.txt $(SJF) $(BF) $(Q3) > $(PRC_DIR)/$@.out
-	diff $(PRC_DIR)/$@.out $(T3_DIR)/$@.out || true
+	./$(EXE_PRG) -f $(T3_DIR)/non-fit.txt $(SJF) $(BF) $(Q3) > $(OUT_DIR)/$@.out
+	diff $(OUT_DIR)/$@.out $(T3_DIR)/$@.out || true
 
 simple-bestfit:
-	./allocate -f $(T3_DIR)/simple.txt $(RR) $(BF) $(Q3) > $(PRC_DIR)/$@.out
-	diff $(PRC_DIR)/$@.out $(T3_DIR)/$@.out || true
+	./$(EXE_PRG) -f $(T3_DIR)/simple.txt $(RR) $(BF) $(Q3) > $(OUT_DIR)/$@.out
+	diff $(OUT_DIR)/$@.out $(T3_DIR)/$@.out || true
