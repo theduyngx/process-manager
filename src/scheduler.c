@@ -2,167 +2,13 @@
  * Author  : The Duy Nguyen - 1100548
  * File    : scheduler.c
  * Purpose : Functions related to scheduling processes.
- *
- * Approach: We read from the text file and still do the exact same thing.
- * However, within the function update_queues where we read pseudo-processes into our input queue,
- * we instead also create a fork() real process.
- *      ==> process_init now needs to include the fork in it
- *          meaning, not just p->name = name anymore, but ./process "name" -v
- *
- * There's another state we must consider, which is suspend_process (or pause). Here we use the kill()
- * and wait() system calls with flag SIGSTP passed to them (RUNNING -> READY)
- * Continuing the process means changing from READY -> RUNNING, and we need to send SIGCONT for that
- * to happen.
- *
- * Terminating process happens in finish_process (or otherwise if we really want to keep it to get the
- * statistics, there are however multiple different ways to approach this).
- * And within terminate_process function, we need to send SIGTERM flag to it.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "queue.h"
 #include "scheduler.h"
-#include "ready_queue.h"
 
-/**
- * Clear all processes in buffer
- * @param buffer  array of all processes
- * @param size    size of array
- */
-void clear_buffer(process_t* buffer[], int size) {
-    for (int i=0; i < size; i++)
-        process_terminate(buffer[i]);
-}
-
-/**
- * Notify successful memory allocation and process getting to input queue.
- * @param timer the current time
- * @param p     the process in question
- * @param base  assigned memory base
- */
-void print_ready(uint32_t timer, process_t* p, unsigned int base) {
-    printf("%u,READY,process_name=%s,assigned_at=%u\n", timer, p->name, base);
-}
-
-/**
- * Print running process.
- * @param timer  the timer
- * @param p      the process
- */
-void print_running(uint32_t timer, process_t* p) {
-    printf("%u,RUNNING,process_name=%s,remaining_time=%u\n", timer, p->name, p->time_left);
-}
-
-/**
- * Print finished process, and number of remaining process in input and ready queue.
- * @param timer           the timer
- * @param p               the finished process
- * @param proc_remaining  number of remaining process to be executed
- */
-void print_finished(uint32_t timer, process_t* p, int proc_remaining) {
-    printf("%u,FINISHED,process_name=%s,proc_remaining=%d\n", timer, p->name, proc_remaining);
-}
-
-/**
- * Finish a process - implying also deallocating its memory, updating the finished array and whatnot.
- * @param running           running process now finished
- * @param mem               the memory
- * @param finished          finished processes array
- * @param index             current index of finished array
- * @param timer             the timer
- * @param proc_remaining    number of processes remaining
- */
-void finish_process(process_t** running, memory_t* mem, process_t** finished, int *index,
-                    uint32_t timer, int proc_remaining)
-{
-    (*running)->time_left = 0;
-    if (deallocate_memory(mem, *running) == FAILURE) {
-        exit(3);
-    }
-    print_finished(timer, *running, proc_remaining);
-    (*running)->status = FINISHED;
-    (*running)->completed_time = timer;
-    finished[(*index)++] = *running;
-    *running = NULL;
-}
-
-
-/**
- * Update the input and ready queues; called after each quantum.
- * @param buffer        the process buffer
- * @param mem           the memory for processes to be allocated
- * @param input_queue   the input queue
- * @param ready_queue   the ready queue
- * @param timer         the timer
- */
-void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_queue_t* ready_queue,
-                   uint32_t timer)
-{
-    // while all processes in buffer arrive within a quantum, we enqueue them to input queue
-    int i = 0;
-    int init_size = input_queue->size;
-    while (buffer->size > 0 && buffer->node->process->arrival <= timer) {
-        process_t* p = dequeue(buffer);
-        enqueue(input_queue, p);
-        i++;
-    }
-
-    // we iterate through input queue and insert each process to the ready queue
-    for (int j=0; j < init_size + i; j++) {
-        process_t* p = input_queue->node->process;
-
-        // memory allocation - success means getting pushed to input queue
-        // otherwise either wait, or process too expensive and must be killed
-        unsigned int assigned_base;
-        if (allocate_memory(mem, p, &assigned_base) == FAILURE)
-            continue;
-        if (mem->requirement == FIN)
-            print_ready(timer, p, assigned_base);
-        dequeue(input_queue);
-        insert(ready_queue, p);
-    }
-}
-
-
-/**
- * Print scheduling statistics
- * @param all_processes the array of all processes; usually obtaining the statistics occurs
- *                      after processes have been finished so this is the finished array
- * @param num_process   total number of processes
- * @param makespan      total amount of time (s) taken to complete all processes in buffer
- */
-void print_statistics(process_t* all_processes[], int num_process, uint32_t makespan) {
-
-    // get required data for statistics
-    double total_turnaround = 0;
-    double total_overhead = 0;
-    double max_overhead = 0;
-    for (int i=0; i < num_process; i++) {
-        process_t* p = all_processes[i];
-        uint32_t turnaround = p->completed_time - p->arrival;
-        total_turnaround += turnaround;
-        double overhead = (double) turnaround / p->service_time;
-        total_overhead += overhead;
-        if (overhead > max_overhead) max_overhead = overhead;
-    }
-
-    // turnaround
-    double turnaround_double = total_turnaround / num_process;
-    uint32_t turnaround_floor = (int) total_turnaround / num_process;
-    uint32_t turnaround = turnaround_floor + (turnaround_floor < turnaround_double);
-    printf("Turnaround time %u\n", turnaround);
-
-    // overhead
-    double average_overhead = total_overhead / num_process;
-    printf("Time overhead %.2f %.2f\n", max_overhead, average_overhead);
-
-    // makespan
-    printf("Makespan %u\n", makespan);
-}
-
-
-/* --------------------------------- SCHEDULERS --------------------------------- */
 
 /**
  * Shortest job first scheduler, scheduling processes using the heap data structure.
@@ -343,4 +189,143 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     free_queue(input_queue);
     free_ready_queue(ready_queue);
     clear_buffer(finished, index);
+}
+
+
+/* -------------------------------- HELPER FUNCTIONS -------------------------------- */
+
+/**
+ * Clear all processes in buffer
+ * @param buffer  array of all processes
+ * @param size    size of array
+ */
+void clear_buffer(process_t* buffer[], int size) {
+    for (int i=0; i < size; i++)
+        process_terminate(buffer[i]);
+}
+
+/**
+ * Notify successful memory allocation and process getting to input queue.
+ * @param timer the current time
+ * @param p     the process in question
+ * @param base  assigned memory base
+ */
+void print_ready(uint32_t timer, process_t* p, unsigned int base) {
+    printf("%u,READY,process_name=%s,assigned_at=%u\n", timer, p->name, base);
+}
+
+/**
+ * Print running process.
+ * @param timer  the timer
+ * @param p      the process
+ */
+void print_running(uint32_t timer, process_t* p) {
+    printf("%u,RUNNING,process_name=%s,remaining_time=%u\n", timer, p->name, p->time_left);
+}
+
+/**
+ * Print finished process, and number of remaining process in input and ready queue.
+ * @param timer           the timer
+ * @param p               the finished process
+ * @param proc_remaining  number of remaining process to be executed
+ */
+void print_finished(uint32_t timer, process_t* p, int proc_remaining) {
+    printf("%u,FINISHED,process_name=%s,proc_remaining=%d\n", timer, p->name, proc_remaining);
+}
+
+/**
+ * Finish a process - implying also deallocating its memory, updating the finished array and whatnot.
+ * @param running           running process now finished
+ * @param mem               the memory
+ * @param finished          finished processes array
+ * @param index             current index of finished array
+ * @param timer             the timer
+ * @param proc_remaining    number of processes remaining
+ */
+void finish_process(process_t** running, memory_t* mem, process_t** finished, int *index,
+                    uint32_t timer, int proc_remaining)
+{
+    (*running)->time_left = 0;
+    if (deallocate_memory(mem, *running) == FAILURE) {
+        exit(3);
+    }
+    print_finished(timer, *running, proc_remaining);
+    (*running)->status = FINISHED;
+    (*running)->completed_time = timer;
+    finished[(*index)++] = *running;
+    *running = NULL;
+}
+
+
+/**
+ * Update the input and ready queues; called after each quantum.
+ * @param buffer        the process buffer
+ * @param mem           the memory for processes to be allocated
+ * @param input_queue   the input queue
+ * @param ready_queue   the ready queue
+ * @param timer         the timer
+ */
+void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_queue_t* ready_queue,
+                   uint32_t timer)
+{
+    // while all processes in buffer arrive within a quantum, we enqueue them to input queue
+    int i = 0;
+    int init_size = input_queue->size;
+    while (buffer->size > 0 && buffer->node->process->arrival <= timer) {
+        process_t* p = dequeue(buffer);
+        enqueue(input_queue, p);
+        i++;
+    }
+
+    // we iterate through input queue and insert each process to the ready queue
+    for (int j=0; j < init_size + i; j++) {
+        process_t* p = input_queue->node->process;
+
+        // memory allocation - success means getting pushed to input queue
+        // otherwise either wait, or process too expensive and must be killed
+        unsigned int assigned_base;
+        if (allocate_memory(mem, p, &assigned_base) == FAILURE)
+            continue;
+        if (mem->requirement == FIN)
+            print_ready(timer, p, assigned_base);
+        dequeue(input_queue);
+        insert(ready_queue, p);
+    }
+}
+
+
+/**
+ * Print scheduling statistics
+ * @param all_processes the array of all processes; usually obtaining the statistics occurs
+ *                      after processes have been finished so this is the finished array
+ * @param num_process   total number of processes
+ * @param makespan      total amount of time (s) taken to complete all processes in buffer
+ */
+void print_statistics(process_t* all_processes[], int num_process, uint32_t makespan) {
+
+    // get required data for statistics
+    double total_turnaround = 0;
+    double total_overhead = 0;
+    double max_overhead = 0;
+    for (int i=0; i < num_process; i++) {
+        process_t* p = all_processes[i];
+        uint32_t turnaround = p->completed_time - p->arrival;
+        total_turnaround += turnaround;
+        double overhead = (double) turnaround / p->service_time;
+        total_overhead += overhead;
+        if (overhead > max_overhead) max_overhead = overhead;
+    }
+
+    // turnaround
+    double turnaround_double = total_turnaround / num_process;
+    uint32_t turnaround_floor = (int) total_turnaround / num_process;
+    uint32_t turnaround = turnaround_floor + (turnaround_floor < turnaround_double);
+    printf("Turnaround time %u\n", turnaround);
+
+    // overhead
+    double average_overhead = total_overhead / num_process;
+    printf("Time overhead %.2f %.2f\n", max_overhead, average_overhead);
+
+    // makespan
+    printf("Makespan %u\n", makespan);
 }

@@ -1,17 +1,17 @@
 # compiler flags
-CC 		= gcc
-INC 	= -Iinclude/
+CC      = gcc
+INC     = -Iinclude/
 CFLAGS  = -Wall
 CFLAGS += $(INC)
 
 # program tags
-RR		= -s RR
-SJF		= -s SJF
-BF 		= -m best-fit
-INF		= -m infinite
-Q1		= -q 1
-Q2		= -q 2
-Q3		= -q 3
+RR      = -s RR
+SJF     = -s SJF
+BF      = -m best-fit
+INF     = -m infinite
+Q1      = -q 1
+Q2      = -q 2
+Q3      = -q 3
 
 # paths
 SRC_DIR = src
@@ -43,11 +43,12 @@ $(EXE_PRC): $(PRC_DIR)/$(PROCESS)
 format:
 	clang-format -style=file -i *.c
 
-
-# other commands
+# clean
 clean:
 	rm -f $(EXE) $(EXE_PRC) $(SRC_DIR)/*.o $(OUT_DIR)/*.out
 
+
+# testing
 two-processes-1:
 	./$(EXE) -f $(T2_DIR)/two-processes.txt $(RR) $(INF) $(Q1) > $(OUT_DIR)/$@.out
 	diff $(OUT_DIR)/$@.out $(T2_DIR)/$@.out || true

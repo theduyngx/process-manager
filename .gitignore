@@ -8,3 +8,4 @@ process
 *.txt
 cmake-build-debug
 CMakeLists.txt
+.gitlab-ci.yml

@@ -119,7 +119,7 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
         hole->prev = min_seg;
         hole->next = min_seg->next;
         min_seg->next = hole;
-        assert(hole->prev && hole);                 // assert hole exists properly
+        assert(hole->prev && hole);      // assert hole exists properly
         (mem->num_segments)++;
     }
     return SUCCESS;
