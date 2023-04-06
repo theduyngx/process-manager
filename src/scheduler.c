@@ -117,7 +117,8 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
         unsigned int assigned_base;
         if (allocate_memory(mem, p, &assigned_base) == FAILURE)
             continue;
-        print_ready(timer, p, assigned_base);
+        if (mem->requirement == FIN)
+            print_ready(timer, p, assigned_base);
         dequeue(input_queue);
         insert(ready_queue, p);
     }
