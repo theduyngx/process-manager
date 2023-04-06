@@ -2,6 +2,21 @@
  * Author  : The Duy Nguyen - 1100548
  * File    : scheduler.c
  * Purpose : Functions related to scheduling processes.
+ *
+ * Approach: We read from the text file and still do the exact same thing.
+ * However, within the function update_queues where we read pseudo-processes into our input queue,
+ * we instead also create a fork() real process.
+ *      ==> process_init now needs to include the fork in it
+ *          meaning, not just p->name = name anymore, but ./process "name" -v
+ *
+ * There's another state we must consider, which is suspend_process (or pause). Here we use the kill()
+ * and wait() system calls with flag SIGSTP passed to them (RUNNING -> READY)
+ * Continuing the process means changing from READY -> RUNNING, and we need to send SIGCONT for that
+ * to happen.
+ *
+ * Terminating process happens in finish_process (or otherwise if we really want to keep it to get the
+ * statistics, there are however multiple different ways to approach this).
+ * And within terminate_process function, we need to send SIGTERM flag to it.
  */
 
 #include <stdio.h>
@@ -146,7 +161,7 @@ void print_statistics(process_t* all_processes[], int num_process, uint32_t make
 }
 
 
-/* ---------------------------- SCHEDULERS ---------------------------- */
+/* --------------------------------- SCHEDULERS --------------------------------- */
 
 /**
  * Shortest job first scheduler, scheduling processes using the heap data structure.

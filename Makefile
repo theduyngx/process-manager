@@ -20,7 +20,7 @@ T2_DIR  = cases/task2
 T3_DIR  = cases/task3
 T4_DIR  = cases/task4
 OUT_DIR = out
-PRC_DIR = process
+PRC_DIR = process-real
 PROCESS = process.c
 OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(SRC_DIR)/%.o, $(wildcard $(SRC_DIR)/*.c))
 

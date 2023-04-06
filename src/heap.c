@@ -4,12 +4,16 @@
  * Purpose : Functions related to dynamically-sized heap of processes.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "heap.h"
 
 
-/* initialize the heap */
+/**
+ * Initialize the heap.
+ * @return  the initialized heap
+ */
 heap_t* heap_init() {
     heap_t* h = (heap_t*) malloc(sizeof(heap_t));
     assert(h);
@@ -19,40 +23,57 @@ heap_t* heap_init() {
     return h;
 }
 
-/* returns the parent node of a given node index */
+
+/**
+ * Get the direct parent node's position of a given node index.
+ * @param  i  given node index
+ * @return    the direct parent node index
+ */
 int parent(int i) {
-    return (i-1)/2;
+    if (i < 0) {
+        fprintf(stderr, "ERROR - parent(): Index node is negative");
+        return 0;
+    }
+    return (i - (i > 0))/2;
 }
 
 
-/* min-heapify by moving process at index i to its appropriate position */
+/**
+ * Min-heapify by recursively moving process at index i to its appropriate position.
+ * @param  h  the heap
+ * @param  i  index of node to have it position updated
+ */
 void min_heapify(heap_t* h, int i) {
-    int n       = h->size;
-    int left    = 2*i + 1;
-    int right   = 2*i + 2;
-    int largest = i;
+    int n        = h->size;
+    int left     = 2*i + 1;
+    int right    = 2*i + 2;
+    int curr_min = i;
 
-    // check if the left node is larger than the current node
+    // check if the left node precedes the current node
     process_t** arr = h->arr;
-    if (left <= n && process_precede(arr[left], arr[largest]))
-        largest = left;
+    if (left <= n && process_precede(arr[left], arr[curr_min]))
+        curr_min = left;
 
-    // check if the right node is larger than the current node
-    if (right <= n && process_precede(arr[right], arr[largest]))
-        largest = right;
+    // check if the right node proceeds the current node
+    if (right <= n && process_precede(arr[right], arr[curr_min]))
+        curr_min = right;
 
-    // swap the largest node with the current node and repeat this process until
-    // the current node is larger than the right and the left node
-    if (largest != i) {
+    // swap the smallest node with the current node and repeat this process until
+    // fully heapified
+    if (curr_min != i) {
         process_t* tmp = arr[i];
-        arr[i] = arr[largest];
-        arr[largest] = tmp;
-        min_heapify(h, largest);
+        arr[i] = arr[curr_min];
+        arr[curr_min] = tmp;
+        min_heapify(h, curr_min);
     }
 }
 
 
-/* insert a process into the heap */
+/**
+ * Insert a process into the heap.
+ * @param  h  the heap
+ * @param  p  the process
+ */
 void heap_push(heap_t* h, process_t* p) {
     int n = h->size;
     int exceeded = 0;
@@ -79,7 +100,11 @@ void heap_push(heap_t* h, process_t* p) {
 }
 
 
-/* extract the most prioritized process from heap */
+/**
+ * Extract the most prioritized process from heap
+ * @param  h  the heap
+ * @return    the extracted process
+ */
 process_t* heap_pop(heap_t* h) {
     if (h->size == 0) return NULL;
     process_t** arr = h->arr;
@@ -107,7 +132,11 @@ process_t* heap_pop(heap_t* h) {
     return prioritized;
 }
 
-/* free heap */
+
+/**
+ * Free heap structure.
+ * @param  h  the heap to have its memory freed
+ */
 void free_heap(heap_t* h) {
     free(h->arr);
     free(h);
