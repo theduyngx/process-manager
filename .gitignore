@@ -7,4 +7,3 @@ process
 *.out
 *.txt
 cmake-build-debug
-CMakeLists.txt
