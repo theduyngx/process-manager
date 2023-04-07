@@ -137,20 +137,6 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
         assert(hole->prev && hole);      // assert hole exists properly
         (mem->num_segments)++;
     }
-
-    ///
-//    printf("ALLOC - segment prev is %p\n", min_seg->prev);
-//    printf("ALLOC - Number of segments: %d\n", mem->num_segments);
-//    memseg_t* segment = mem->segments;
-//    for (int i=0; i < mem->num_segments; i++) {
-//        printf("%d - state = %d\n", i, segment->state);
-//        if (segment->state == PROCESS) {
-//            printf("A process! - %s\n", segment->process->name);
-//        }
-//        printf("\n");
-//        segment = segment->next;
-//    }
-    ///
     return SUCCESS;
 }
 
@@ -180,11 +166,6 @@ int deallocate_memory(memory_t* mem, process_t* p) {
     int found = FAILURE;
     memseg_t* seg = mem->segments;
     for (int i=0; i < mem->num_segments; i++) {
-//        printf("%d\n", i);
-//        printf("%d\n", seg->state);
-//        printf("%p\n", seg->process);
-//        printf("%p\n", p);
-
         if (seg->state == PROCESS && seg->process == p) {
             found = SUCCESS;
 
@@ -195,8 +176,6 @@ int deallocate_memory(memory_t* mem, process_t* p) {
 
             // merging proceeding block
             memseg_t* next = seg->next;
-//            printf("seg (before merged with next) is %p\n", seg);
-//            printf("next prev (before merged) is %p\n", next->prev);
             if (next != NULL && next->state == HOLE) {
                 seg->size += next->size;
                 seg->next = next->next;
@@ -206,14 +185,10 @@ int deallocate_memory(memory_t* mem, process_t* p) {
                     seg->next->prev = seg;
                 (mem->num_segments)--;
                 free(next);
-//                printf("IN NEXT\n");
             }
 
             // merging preceding block
             memseg_t* prev = seg->prev;
-//            printf("seg (after merged) is %p\n", seg);
-//            printf("next (after merged) is %p\n", seg->next);
-//            printf("prev of seg (after merged) is %p\n", prev);
             if (prev != NULL && prev->state == HOLE) {
                 prev->size += seg->size;
                 prev->next = seg->next;

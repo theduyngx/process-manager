@@ -292,13 +292,6 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
         process_t* p = dequeue(buffer);
         enqueue(input_queue, p);
         i++;
-
-        ///
-        // // create process
-        // char* args[] = {"./process", p->name, "-v", NULL};
-        // execv("./process", args);
-        // fork();
-        ///
     }
 
     // we iterate through input queue and insert each process to the ready queue
@@ -310,7 +303,7 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
         unsigned int assigned_base;
         if (allocate_memory(mem, p, &assigned_base) == FAILURE)
             continue;
-        if (mem->requirement == FIN)
+        if (mem->requirement != INF)
             print_ready(timer, p, assigned_base);
         dequeue(input_queue);
         insert(ready_queue, p);
