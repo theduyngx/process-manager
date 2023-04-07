@@ -120,6 +120,7 @@ int main(int argc, char* argv[]) {
 
     // check for scheduling algorithm flag
     if      (strcmp(s_flag, "SJF" ) == 0) SJF_scheduler (buffer, mem, quantum);
+    else if (strcmp(s_flag, "FCFS") == 0) FCFS_scheduler(buffer, mem, quantum);
     else if (strcmp(s_flag, "RR"  ) == 0) RR_scheduler  (buffer, mem, quantum);
     else if (strcmp(s_flag, "SRTN") == 0) SRTN_scheduler(buffer, mem, quantum);
     else {

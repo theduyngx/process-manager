@@ -2,6 +2,7 @@
  * Author  : The Duy Nguyen - 1100548
  * File    : mem_alloc.c
  * Purpose : File with functions related to creating memory and allocating memory for processes.
+ *           The algorithm used for memory allocation is best fit.
  */
 
 #include <stdlib.h>

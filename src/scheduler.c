@@ -11,17 +11,80 @@
 
 
 /**
+ * First-come, First-serve scheduler, scheduling processes using the queue data structure.
+ * @param buffer    all input processes
+ * @param mem       the memory
+ * @param quantum   quantum length (s)
+ */
+__attribute__((unused))
+void FCFS_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
+    nonpreemptive_scheduler(buffer, mem, quantum, QUEUE);
+}
+
+
+/**
  * Shortest job first scheduler, scheduling processes using the heap data structure.
  * @param buffer    all input processes
  * @param mem       the memory
  * @param quantum   quantum length (s)
  */
 void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
+    nonpreemptive_scheduler(buffer, mem, quantum, HEAP);
+}
+
+
+/**
+ * Round-robin scheduler - preemptive. The scheduler uses queue data structure to manage processes.
+ * @param buffer    all processes
+ * @param mem       the memory
+ * @param quantum   quantum length
+ */
+void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
+    preemptive_scheduler(buffer, mem, quantum, QUEUE);
+}
+
+
+/**
+ * Shortest remaining time next scheduler - preemptive. The scheduler uses heap to manage processes.
+ * It always executes the job with least service time left, and with preemption.
+ * @param buffer    all processes
+ * @param mem       the memory
+ * @param quantum   quantum length
+ */
+
+void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
+    preemptive_scheduler(buffer, mem, quantum, HEAP);
+}
+
+
+/* -------------------------------- SCHEDULER TEMPLATES -------------------------------- */
+
+/**
+ * Template for nonpreemptive scheduling algorithms. The priority of the nonpreemptive algorithm
+ * will be determined by the type parameter, which indicates which data type the ready queue
+ * would use to extract and manage its priority.
+ * @param buffer    process buffer
+ * @param mem       the memory
+ * @param quantum   the quantum (amount of time per cycle)
+ * @param type      data structure type of ready queue
+ */
+void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure type) {
+    // error handling
+    if (buffer == NULL || buffer->node == NULL) {
+        fprintf(stderr, "ERROR - SJF_scheduler: null buffer\n");
+        exit(1);
+    }
+    if (mem == NULL) {
+        fprintf(stderr, "ERROR - SJF_scheduler: null memory\n");
+        exit(1);
+    }
+
+    // queues and timer
     queue_t* input_queue = queue_init();
-    ready_queue_t* ready_queue = ready_queue_init(HEAP);
+    ready_queue_t* ready_queue = ready_queue_init(type);
     uint32_t timer = 0;
 
-    ///
+    /// finished processes
     process_t* finished[buffer->size];
     int index = 0;
     ///
@@ -66,82 +129,31 @@ void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
 
 
 /**
- * Round-robin scheduler - preemptive. The scheduler uses queue data structure to manage processes.
- * @param buffer    all processes
+ * Template for preemptive scheduling algorithms. The priority of the preemptive algorithm
+ * will be determined by the type parameter, which indicates which data type the ready queue
+ * would use to extract and manage its priority.
+ * @param buffer    process buffer
  * @param mem       the memory
- * @param quantum   quantum length
+ * @param quantum   the quantum (amount of time per cycle)
+ * @param type      data structure type of ready queue
  */
-void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
-    queue_t* input_queue = queue_init();
-    ready_queue_t* ready_queue = ready_queue_init(QUEUE);
-    uint32_t timer = 0;
-
-    ///
-    process_t* finished[buffer->size];
-    int index = 0;
-    ///
-
-    process_t* running = NULL;
-    int size_condition = 1;
-    while (buffer->size > 0 || running != NULL || size_condition) {
-
-        // update input and ready queues
-        update_queues(buffer, mem, input_queue, ready_queue, timer);
-
-        // round-robin
-        if (ready_queue->size > 0 && running != NULL) {
-            running->status = READY;
-            insert(ready_queue, running);
-            running = NULL;
-        }
-        // if there are processes in ready queue, or currently running process exists
-        else if (ready_queue->size > 0 || running != NULL) {
-
-            // if there is no process currently running
-            if (running == NULL) {
-                running = extract(ready_queue);
-                running->status = RUNNING;
-                print_running(timer, running);
-            }
-            int completed = running->time_left <= quantum;
-            timer += quantum;
-
-            // if, or otherwise, the process has completed its execution
-            if (completed)
-                finish_process(&running, mem, finished, &index, timer,
-                               ready_queue->size + input_queue->size);
-            else running->time_left -= quantum;
-        }
-
-        // otherwise - no process running nor any process in ready queue
-        else timer += quantum;
-        size_condition = ready_queue->size > 0;
+void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure type) {
+    // error handling
+    if (buffer == NULL || buffer->node == NULL) {
+        fprintf(stderr, "ERROR - SJF_scheduler: null buffer\n");
+        exit(1);
     }
-    // print statistics
-    print_statistics(finished, index, timer);
+    if (mem == NULL) {
+        fprintf(stderr, "ERROR - SJF_scheduler: null memory\n");
+        exit(1);
+    }
 
-    // free memory
-    free_queue(input_queue);
-    free_ready_queue(ready_queue);
-    clear_buffer(finished, index);
-}
-
-
-/**
- * Shortest remaining time next scheduler - preemptive. The scheduler uses heap to manage processes.
- * It always executes the job with least service time left, and with preemption.
- * @param buffer    all processes
- * @param mem       the memory
- * @param quantum   quantum length
- */
-__attribute__((unused))
-
-void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
+    // queues and timer
     queue_t* input_queue = queue_init();
-    ready_queue_t* ready_queue = ready_queue_init(HEAP);
+    ready_queue_t* ready_queue = ready_queue_init(type);
     uint32_t timer = 0;
 
-    ///
+    /// finished processes
     process_t* finished[buffer->size];
     int index = 0;
     ///
@@ -153,7 +165,7 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
         // update input and ready queues
         update_queues(buffer, mem, input_queue, ready_queue, timer);
 
-        // round-robin
+        // preemption
         if (ready_queue->size > 0 && running != NULL) {
             running->status = READY;
             insert(ready_queue, running);

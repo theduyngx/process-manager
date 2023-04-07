@@ -12,14 +12,21 @@
 #include "mem_alloc.h"
 #include "ready_queue.h"
 
-/* SJF and RR */
+/* Nonpreemptive schedulers */
+__attribute__((unused)) __attribute__((unused))
+void FCFS_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 void SJF_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
+
+
+/* Preemptive schedulers */
+__attribute__((unused))
+void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 
 
-/* Additional preemptive algorithm */
-__attribute__((unused))
-void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
+/* Nonpreemptive and preemptive templates */
+void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure type);
+void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure type);
 
 
 /* Helper functions */

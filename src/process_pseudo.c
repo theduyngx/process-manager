@@ -38,10 +38,13 @@ process_t* process_init(const char *name, uint32_t arrival, uint32_t service_tim
  * @return   0 if termination succeeds, or otherwise
  */
 int process_terminate(process_t *p) {
-    assert(p);
+    if (p == NULL) {
+        fprintf(stderr, "Process %s is NULL!\n", p->name);
+        exit(1);
+    }
     if (p->status != FINISHED) {
-        printf("Process %s is not finished!\n", p->name);
-        return 1;
+        fprintf(stderr, "Process %s is not finished!\n", p->name);
+        exit(3);
     }
     free(p);
     return 0;
@@ -55,6 +58,10 @@ int process_terminate(process_t *p) {
  * @return      0 (False) if not preceding, and 1 (True) if preceding
  */
 int process_precede(process_t* tmp, process_t* pivot) {
+    if (tmp == NULL || pivot == NULL) {
+        fprintf(stderr, "ERROR - process_precede: null inputs\n");
+        exit(1);
+    }
     uint32_t tmp_time      = tmp->time_left;
     uint32_t tmp_request   = tmp->arrival;
     const char* tmp_name   = tmp->name;
@@ -77,6 +84,10 @@ int process_precede(process_t* tmp, process_t* pivot) {
  * @return      0 (False) if not proceeding, and 1 (True) if proceeding
  */
 int process_exceed(process_t* tmp, process_t* pivot) {
+    if (tmp == NULL || pivot == NULL) {
+        fprintf(stderr, "ERROR - process_precede: null inputs\n");
+        exit(1);
+    }
     uint32_t tmp_time      = tmp->time_left;
     uint32_t tmp_request   = tmp->arrival;
     const char* tmp_name   = tmp->name;

@@ -18,6 +18,7 @@ heap_t* heap_init() {
     heap_t* h = (heap_t*) malloc(sizeof(heap_t));
     assert(h);
     h->arr = (process_t**) malloc(sizeof(process_t*) * SIZE);
+    assert(h->arr);
     h->max_size = SIZE;
     h->size = 0;
     return h;
@@ -32,7 +33,7 @@ heap_t* heap_init() {
 int parent(int i) {
     if (i < 0) {
         fprintf(stderr, "ERROR - parent(): Index node is negative");
-        return 0;
+        exit(1);
     }
     return (i - (i > 0))/2;
 }
@@ -71,10 +72,16 @@ void min_heapify(heap_t* h, int i) {
 
 /**
  * Insert a process into the heap.
- * @param  h  the heap
- * @param  p  the process
+ * @param h the heap
+ * @param p the process
  */
 void heap_push(heap_t* h, process_t* p) {
+    // error handling
+    if (h == NULL || p == NULL) {
+        fprintf(stderr, "ERROR - heap_push: null input\n");
+        exit(1);
+    }
+
     int n = h->size;
     int exceeded = 0;
 
@@ -106,6 +113,10 @@ void heap_push(heap_t* h, process_t* p) {
  * @return    the extracted process
  */
 process_t* heap_pop(heap_t* h) {
+    if (h == NULL) {
+        fprintf(stderr, "ERROR - heap_pop: null heap\n");
+        exit(1);
+    }
     if (h->size == 0) return NULL;
     process_t** arr = h->arr;
     process_t* prioritized = arr[0];
