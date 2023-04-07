@@ -43,6 +43,16 @@ ready_queue_t* ready_queue_init(enum structure type) {
  * @param p   the process
  */
 void insert(ready_queue_t* rq, process_t* p) {
+    //error handling
+    if (rq == NULL || (rq->list.h == NULL && rq->list.q == NULL)) {
+        fprintf(stderr, "ERROR - insert: null ready queue input\n");
+        exit(1);
+    }
+    if (p == NULL) {
+        fprintf(stderr, "ERROR - insert: null process input\n");
+        exit(1);
+    }
+
     switch(rq->type) {
         case HEAP:
             heap_push(rq->list.h, p);
@@ -62,6 +72,12 @@ void insert(ready_queue_t* rq, process_t* p) {
  * @return    the extracted process
  */
 process_t* extract(ready_queue_t* rq) {
+    //error handling
+    if (rq == NULL || (rq->list.h == NULL && rq->list.q == NULL)) {
+        fprintf(stderr, "ERROR - insert: null ready queue input\n");
+        exit(1);
+    }
+
     process_t* p;
     switch(rq->type) {
         case HEAP:
@@ -82,6 +98,7 @@ process_t* extract(ready_queue_t* rq) {
  * @param rq  the ready queue
  */
 void free_ready_queue(ready_queue_t* rq) {
+    if (rq == NULL) return;
     switch(rq->type) {
         case HEAP:
             free_heap(rq->list.h);

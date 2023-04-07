@@ -5,6 +5,7 @@
  *           The algorithm used for memory allocation is best fit.
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "mem_alloc.h"
@@ -66,6 +67,16 @@ memory_t* memory_inf_init() {
  * @return      0 if succeeds and otherwise if not
  */
 int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
+    //error handling
+    if (mem == NULL) {
+        fprintf(stderr, "ERROR - allocate_memory: null memory input\n");
+        exit(1);
+    }
+    if (p == NULL) {
+        fprintf(stderr, "ERROR - allocate_memory: null process input\n");
+        exit(1);
+    }
+
     // if process is too large for memory then kill
     unsigned int p_size = p->size;
     if (p_size > mem->capacity) {
@@ -134,7 +145,17 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
  * @return     0 if succeeds and otherwise if not
  */
 int deallocate_memory(memory_t* mem, process_t* p) {
-    if (mem->requirement == INF) return SUCCESS;
+    //error handling
+    if (mem == NULL) {
+        fprintf(stderr, "ERROR - deallocate_memory: null memory input\n");
+        exit(1);
+    }
+    if (p == NULL) {
+        fprintf(stderr, "ERROR - deallocate_memory: null process input\n");
+        exit(1);
+    }
+
+    // process has not finished execution
     if (p->time_left > 0) return FAILURE;
 
     // find process in memory
@@ -188,6 +209,7 @@ int deallocate_memory(memory_t* mem, process_t* p) {
  * @param mem  the memory to be freed
  */
 void free_memory(memory_t* mem) {
+    if (mem == NULL) return;
     while (mem->num_segments > 1) {
         mem->segments = mem->segments->next;
         free(mem->segments->prev);

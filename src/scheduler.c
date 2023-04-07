@@ -51,7 +51,7 @@ void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
  * @param mem       the memory
  * @param quantum   quantum length
  */
-
+__attribute__((unused))
 void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
     preemptive_scheduler(buffer, mem, quantum, HEAP);
 }
