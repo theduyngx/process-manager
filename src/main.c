@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     else if (strcmp(m_flag, "best-fit") == 0) mem = memory_init(FINITE_CAPACITY);
     else {
         fprintf(stderr, "Invalid argument for flag -m: %s\n", m_flag);
-        exit(1);
+        exit(2);
     }
 
     // check quantum flag value correctness
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     if (quantum <= 0) {
         fprintf(stderr, "Invalid argument for flag -q: %s\n", q_flag);
         free_memory(mem);
-        exit(1);
+        exit(2);
     }
 
     // check for scheduling algorithm flag
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     else {
         fprintf(stderr, "Invalid argument for flag -s: %s\n", s_flag);
         free_memory(mem);
-        exit(1);
+        exit(2);
     }
 
     return 0;

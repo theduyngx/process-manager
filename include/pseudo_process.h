@@ -8,6 +8,7 @@
 #define PROJECT1_PSEUDO_PROCESS_H
 
 #include <stdint.h>
+#include <unistd.h>
 
 /* data structures */
 // status
@@ -19,7 +20,8 @@ enum status {
 
 // pseudo-process data structure
 struct process {
-    const char *name;
+    pid_t pid;
+    char *name;
     uint32_t arrival;
     uint32_t service_time;
     uint32_t time_left;

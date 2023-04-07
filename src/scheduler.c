@@ -61,14 +61,16 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
 
 /**
  * Template for nonpreemptive scheduling algorithms. The priority of the nonpreemptive algorithm
- * will be determined by the type parameter, which indicates which data type the ready queue
- * would use to extract and manage its priority.
- * @param buffer    process buffer
- * @param mem       the memory
- * @param quantum   the quantum (amount of time per cycle)
- * @param type      data structure type of ready queue
+ * will be determined by the ready queue type parameter - the data type used for the ready queue
+ * to extract and manage its priority.
+ * @param buffer      process buffer
+ * @param mem         the memory
+ * @param quantum     the quantum (amount of time per cycle)
+ * @param ready_qtype data structure type of ready queue
  */
-void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure type) {
+void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum,
+                             enum structure ready_qtype)
+{
     // error handling
     if (buffer == NULL || buffer->node == NULL) {
         fprintf(stderr, "ERROR - SJF_scheduler: null buffer\n");
@@ -81,7 +83,7 @@ void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantu
 
     // queues and timer
     queue_t* input_queue = queue_init();
-    ready_queue_t* ready_queue = ready_queue_init(type);
+    ready_queue_t* ready_queue = ready_queue_init(ready_qtype);
     uint32_t timer = 0;
 
     /// finished processes
@@ -130,14 +132,16 @@ void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantu
 
 /**
  * Template for preemptive scheduling algorithms. The priority of the preemptive algorithm
- * will be determined by the type parameter, which indicates which data type the ready queue
- * would use to extract and manage its priority.
- * @param buffer    process buffer
- * @param mem       the memory
- * @param quantum   the quantum (amount of time per cycle)
- * @param type      data structure type of ready queue
+ * will be determined by the ready queue type parameter - the data type used for the ready
+ * queue to extract and manage its priority.
+ * @param buffer      process buffer
+ * @param mem         the memory
+ * @param quantum     the quantum (amount of time per cycle)
+ * @param ready_qtype data structure type of ready queue
  */
-void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure type) {
+void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum,
+                          enum structure ready_qtype)
+{
     // error handling
     if (buffer == NULL || buffer->node == NULL) {
         fprintf(stderr, "ERROR - SJF_scheduler: null buffer\n");
@@ -150,7 +154,7 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, 
 
     // queues and timer
     queue_t* input_queue = queue_init();
-    ready_queue_t* ready_queue = ready_queue_init(type);
+    ready_queue_t* ready_queue = ready_queue_init(ready_qtype);
     uint32_t timer = 0;
 
     /// finished processes
@@ -245,6 +249,7 @@ void print_finished(uint32_t timer, process_t* p, int proc_remaining) {
     printf("%u,FINISHED,process_name=%s,proc_remaining=%d\n", timer, p->name, proc_remaining);
 }
 
+
 /**
  * Finish a process - implying also deallocating its memory, updating the finished array and whatnot.
  * @param running           running process now finished
@@ -287,6 +292,13 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
         process_t* p = dequeue(buffer);
         enqueue(input_queue, p);
         i++;
+
+        ///
+        // // create process
+        // char* args[] = {"./process", p->name, "-v", NULL};
+        // execv("./process", args);
+        // fork();
+        ///
     }
 
     // we iterate through input queue and insert each process to the ready queue

@@ -24,9 +24,9 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 
 
-/* Nonpreemptive and preemptive templates */
-void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure type);
-void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure type);
+/* Preemption-based scheduling algorithm templates */
+void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure ready_qtype);
+void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure ready_qtype);
 
 
 /* Helper functions */
@@ -38,7 +38,7 @@ void print_running(uint32_t timer, process_t* p);
 void print_finished(uint32_t timer, process_t* p, int proc_remaining);
 void print_statistics(process_t* all_processes[], int num_process, uint32_t makespan);
 void finish_process(process_t** running, memory_t* mem, process_t** finished, int *index,
-            uint32_t timer, int proc_remaining);
+                    uint32_t timer, int proc_remaining);
 
 
 #endif //PROJECT1_SCHEDULER_H
