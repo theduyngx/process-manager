@@ -5,7 +5,6 @@ cmake-build-debug/
 allocate
 process
 *.out
-*.txt
 cmake-build-debug
 CMakeLists.txt
 .gitlab-ci.yml
