@@ -36,7 +36,6 @@ int main(int argc, char* argv[]) {
     char* m_flag = NULL;
     char* q_flag = NULL;
     int c;
-    opterr = 0;
 
     // check input flags
     while ((c = getopt(argc, argv, "f:s:m:q:")) != -1) {

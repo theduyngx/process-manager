@@ -29,10 +29,6 @@ process_t* process_init(const char *name, uint32_t arrival, uint32_t service_tim
     p->size = size;
     assert(p);
 
-    // create process
-//    char* args[] = {"./process", p->name, NULL};
-//    execv("./process", args);
-//    fork();
     // not sure if we need this - but after this step we must read in the Big Endian byte ordering
     // probably pipe (using dup2)
     // recall that in dup2 we must use pipe to create a piped file descriptor, and use dup2 to read in
@@ -43,8 +39,6 @@ process_t* process_init(const char *name, uint32_t arrival, uint32_t service_tim
 
     // finally, we use fd[1] which is the piped stdout to read 1 byte (however that works) from it to
     // compare and make sure that it is identical to our stdin least significant bits.
-//    pid_t pid = getpid();
-//    p->pid = pid;
     return p;
 }
 

@@ -22,6 +22,7 @@
 memseg_t* memseg_init(unsigned int size, unsigned int base, enum segment_state state) {
     memseg_t* memseg = (memseg_t*) malloc(sizeof(memseg_t));
     memseg->prev = NULL;
+    memseg->next = NULL;
     assert(memseg);
     memseg->size = size;
     memseg->base = base;

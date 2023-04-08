@@ -25,8 +25,8 @@ void RR_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum);
 
 
 /* Preemption-based scheduling algorithm templates */
-void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure ready_qtype);
-void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure ready_qtype);
+void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure rq_type);
+void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure rq_type);
 
 
 /* Helper functions */

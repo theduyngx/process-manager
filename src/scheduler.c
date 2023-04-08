@@ -9,6 +9,8 @@
 #include "queue.h"
 #include "scheduler.h"
 
+#include "process_real.h"
+
 
 /**
  * First-come, First-serve scheduler, scheduling processes using the queue data structure.
@@ -63,14 +65,12 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
  * Template for nonpreemptive scheduling algorithms. The priority of the nonpreemptive algorithm
  * will be determined by the ready queue type parameter - the data type used for the ready queue
  * to extract and manage its priority.
- * @param buffer      process buffer
- * @param mem         the memory
- * @param quantum     the quantum (amount of time per cycle)
- * @param ready_qtype data structure type of ready queue
+ * @param buffer    process buffer
+ * @param mem       the memory
+ * @param quantum   the quantum (amount of time per cycle)
+ * @param rq_type   data structure type of ready queue
  */
-void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum,
-                             enum structure ready_qtype)
-{
+void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure rq_type) {
     // error handling
     if (buffer == NULL || buffer->node == NULL) {
         fprintf(stderr, "ERROR - SJF_scheduler: null buffer\n");
@@ -83,7 +83,7 @@ void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantu
 
     // queues and timer
     queue_t* input_queue = queue_init();
-    ready_queue_t* ready_queue = ready_queue_init(ready_qtype);
+    ready_queue_t* ready_queue = ready_queue_init(rq_type);
     uint32_t timer = 0;
 
     /// finished processes
@@ -134,14 +134,12 @@ void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantu
  * Template for preemptive scheduling algorithms. The priority of the preemptive algorithm
  * will be determined by the ready queue type parameter - the data type used for the ready
  * queue to extract and manage its priority.
- * @param buffer      process buffer
- * @param mem         the memory
- * @param quantum     the quantum (amount of time per cycle)
- * @param ready_qtype data structure type of ready queue
+ * @param buffer    process buffer
+ * @param mem       the memory
+ * @param quantum   the quantum (amount of time per cycle)
+ * @param rq_type   data structure type of ready queue
  */
-void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum,
-                          enum structure ready_qtype)
-{
+void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure rq_type) {
     // error handling
     if (buffer == NULL || buffer->node == NULL) {
         fprintf(stderr, "ERROR - SJF_scheduler: null buffer\n");
@@ -154,7 +152,7 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum,
 
     // queues and timer
     queue_t* input_queue = queue_init();
-    ready_queue_t* ready_queue = ready_queue_init(ready_qtype);
+    ready_queue_t* ready_queue = ready_queue_init(rq_type);
     uint32_t timer = 0;
 
     /// finished processes
@@ -211,6 +209,68 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum,
 /* -------------------------------- HELPER FUNCTIONS -------------------------------- */
 
 /**
+ * Update the input and ready queues; called after each quantum.
+ * @param buffer        the process buffer
+ * @param mem           the memory for processes to be allocated
+ * @param input_queue   the input queue
+ * @param ready_queue   the ready queue
+ * @param timer         the timer
+ */
+void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_queue_t* ready_queue,
+                   uint32_t timer)
+{
+    // while all processes in buffer arrive within a quantum, we enqueue them to input queue
+    int i = 0;
+    int init_size = input_queue->size;
+    while (buffer->size > 0 && buffer->node->process->arrival <= timer) {
+        process_t* p = dequeue(buffer);
+        enqueue(input_queue, p);
+        i++;
+    }
+
+    // we iterate through input queue and insert each process to the ready queue
+    for (int j=0; j < init_size + i; j++) {
+        process_t* p = input_queue->node->process;
+
+        // memory allocation - success means getting pushed to input queue
+        // otherwise either wait, or process too expensive and must be killed
+        unsigned int assigned_base;
+        if (allocate_memory(mem, p, &assigned_base) == FAILURE)
+            continue;
+        if (mem->requirement != INF)
+            print_ready(timer, p, assigned_base);
+//        write_process(p, timer);
+        dequeue(input_queue);
+        insert(ready_queue, p);
+    }
+}
+
+
+/**
+ * Finish a process - implying also deallocating its memory, updating the finished array and whatnot.
+ * @param running           running process now finished
+ * @param mem               the memory
+ * @param finished          finished processes array
+ * @param index             current index of finished array
+ * @param timer             the timer
+ * @param proc_remaining    number of processes remaining
+ */
+void finish_process(process_t** running, memory_t* mem, process_t** finished, int *index,
+                    uint32_t timer, int proc_remaining)
+{
+    (*running)->time_left = 0;
+    if (deallocate_memory(mem, *running) == FAILURE) {
+        exit(3);
+    }
+    print_finished(timer, *running, proc_remaining);
+    (*running)->status = FINISHED;
+    (*running)->completed_time = timer;
+    finished[(*index)++] = *running;
+    *running = NULL;
+}
+
+
+/**
  * Clear all processes in buffer
  * @param buffer  array of all processes
  * @param size    size of array
@@ -247,67 +307,6 @@ void print_running(uint32_t timer, process_t* p) {
  */
 void print_finished(uint32_t timer, process_t* p, int proc_remaining) {
     printf("%u,FINISHED,process_name=%s,proc_remaining=%d\n", timer, p->name, proc_remaining);
-}
-
-
-/**
- * Finish a process - implying also deallocating its memory, updating the finished array and whatnot.
- * @param running           running process now finished
- * @param mem               the memory
- * @param finished          finished processes array
- * @param index             current index of finished array
- * @param timer             the timer
- * @param proc_remaining    number of processes remaining
- */
-void finish_process(process_t** running, memory_t* mem, process_t** finished, int *index,
-                    uint32_t timer, int proc_remaining)
-{
-    (*running)->time_left = 0;
-    if (deallocate_memory(mem, *running) == FAILURE) {
-        exit(3);
-    }
-    print_finished(timer, *running, proc_remaining);
-    (*running)->status = FINISHED;
-    (*running)->completed_time = timer;
-    finished[(*index)++] = *running;
-    *running = NULL;
-}
-
-
-/**
- * Update the input and ready queues; called after each quantum.
- * @param buffer        the process buffer
- * @param mem           the memory for processes to be allocated
- * @param input_queue   the input queue
- * @param ready_queue   the ready queue
- * @param timer         the timer
- */
-void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_queue_t* ready_queue,
-                   uint32_t timer)
-{
-    // while all processes in buffer arrive within a quantum, we enqueue them to input queue
-    int i = 0;
-    int init_size = input_queue->size;
-    while (buffer->size > 0 && buffer->node->process->arrival <= timer) {
-        process_t* p = dequeue(buffer);
-        enqueue(input_queue, p);
-        i++;
-    }
-
-    // we iterate through input queue and insert each process to the ready queue
-    for (int j=0; j < init_size + i; j++) {
-        process_t* p = input_queue->node->process;
-
-        // memory allocation - success means getting pushed to input queue
-        // otherwise either wait, or process too expensive and must be killed
-        unsigned int assigned_base;
-        if (allocate_memory(mem, p, &assigned_base) == FAILURE)
-            continue;
-        if (mem->requirement != INF)
-            print_ready(timer, p, assigned_base);
-        dequeue(input_queue);
-        insert(ready_queue, p);
-    }
 }
 
 
