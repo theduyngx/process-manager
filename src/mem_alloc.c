@@ -85,7 +85,7 @@ int allocate_memory(memory_t* mem, process_t* p, unsigned int* base) {
     unsigned int p_size = p->size;
     if (p_size > mem->capacity) {
         p->status = FINISHED;
-        process_terminate(p);
+        process_free(p);
     }
     // else if process cannot presently fit memory
     else if (mem->used + p_size > mem->capacity) return FAILURE;

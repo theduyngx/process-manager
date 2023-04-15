@@ -34,7 +34,7 @@ typedef struct process process_t;
 
 /* function prototypes */
 process_t* process_init(const char *name, uint32_t request_time, uint32_t service_time, unsigned int size);
-int process_terminate(process_t *p);
+int process_free(process_t *p);
 int process_precede(process_t* tmp, process_t* pivot);
 int process_exceed(process_t* tmp, process_t* pivot);
 

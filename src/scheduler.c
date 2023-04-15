@@ -239,9 +239,11 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
             continue;
         if (mem->requirement != INF)
             print_ready(timer, p, assigned_base);
-//        write_process(p, timer);
         dequeue(input_queue);
         insert(ready_queue, p);
+
+        // write to real process
+//        create_process(p, timer);
     }
 }
 
@@ -277,7 +279,7 @@ void finish_process(process_t** running, memory_t* mem, process_t** finished, in
  */
 void clear_buffer(process_t* buffer[], int size) {
     for (int i=0; i < size; i++)
-        process_terminate(buffer[i]);
+        process_free(buffer[i]);
 }
 
 /**

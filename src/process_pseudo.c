@@ -48,7 +48,7 @@ process_t* process_init(const char *name, uint32_t arrival, uint32_t service_tim
  * @param p  given process
  * @return   0 if termination succeeds, or otherwise
  */
-int process_terminate(process_t *p) {
+int process_free(process_t *p) {
     if (p == NULL) {
         fprintf(stderr, "Process %s is NULL!\n", p->name);
         exit(1);
