@@ -24,8 +24,6 @@
  * @return      0 if successful, and otherwise if not
  */
 int create_process(process_t* p, uint32_t timer) {
-    int READ_END = 0;
-    int WRITE_END = 1;
     char* PATH = "./process";
 
     // convert the value to big endian byte ordering
@@ -34,69 +32,38 @@ int create_process(process_t* p, uint32_t timer) {
     uint32_t converted = htonl(timer);
 
     // forking and pipping
-    int parent_fd[2];
-    int child_fd[2];
-    pipe(parent_fd);
-    pipe(child_fd);
-    pid_t curr_id = fork();
+    pipe(p->parent_fd);
+    pipe(p->child_fd);
+    p->pid = fork();
 
     // fork error
-    if (curr_id == -1) {
+    if (p->pid == -1) {
         fprintf(stderr, "ERROR - create_process: fork failed\n");
         exit(1);
     }
 
     // process program - child
-    else if (curr_id == 0) {
-        dup2(parent_fd[READ_END], STDIN_FILENO);
-        dup2(child_fd[WRITE_END], STDOUT_FILENO);
+    else if (p->pid == 0) {
+        dup2(p->parent_fd[READ_END], STDIN_FILENO);
+        dup2(p->child_fd[WRITE_END], STDOUT_FILENO);
         char* args[] = {PATH, p->name, NULL};
         execv(PATH, args);
     }
 
     // allocate program - parent
     else {
-        write(parent_fd[WRITE_END], &converted, sizeof(converted));
+        write(p->parent_fd[WRITE_END], &converted, sizeof(converted));
         char read_buffer[1];
-        read(child_fd[READ_END], read_buffer, sizeof(read_buffer));
+        read(p->child_fd[READ_END], read_buffer, sizeof(read_buffer));
         long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
         if (read_buffer[0] != endian_arr[lsb]) {
             fprintf(stderr,
                     "ERROR - create_process: process %s differs in read and written byte\n",
                     p->name);
-            printf("%x %x \n", (&converted)[lsb], read_buffer[0]);
+            fprintf(stderr, "written    : 0x%x\n", endian_arr[lsb]);
+            fprintf(stderr, "read buffer: 0x%x\n", read_buffer[0]);
             exit(2);
         }
-        p->pid = curr_id;
-
-        // temporarily terminate process
-        kill(p->pid, SIGTERM);
-
-    }
-    return 0;
-}
-
-
-/**
- * Suspend process.
- * @param p     pseudo-process, or metadata of the real process
- * @param timer the current time
- * @return      0 if successful, and otherwise if not
- */
-int suspend_process(process_t* p, uint32_t timer) {
-    char* endian_arr = (char*) &timer;
-    int fd[2];
-    char read_buffer[80];
-    pipe(fd);
-    write(fd[1], endian_arr, (strlen(endian_arr) + 1));
-    read(fd[0], read_buffer, sizeof(read_buffer));
-
-    kill(p->pid, SIGSTOP);
-
-    int status;
-    if (waitpid(p->pid, &status, WUNTRACED) > 0) {
-        if (!WIFEXITED(status) || WEXITSTATUS(status) == 127)
-            exit(1);
     }
     return 0;
 }
@@ -109,19 +76,84 @@ int suspend_process(process_t* p, uint32_t timer) {
  * @return      0 if successful, and otherwise if not
  */
 int continue_process(process_t* p, uint32_t timer) {
-    char* endian_arr = (char*) &timer;
-    int fd[2];
-    char read_buffer[80];
-    pipe(fd);
-    write(fd[1], endian_arr, (strlen(endian_arr) + 1));
-    read(fd[0], read_buffer, sizeof(read_buffer));
 
-    kill(p->pid, SIGCONT);
+    // convert the value to big endian byte ordering
+    char endian_arr[NUM_ENDIAN_BYTES];
+    big_endian(endian_arr, timer);
+    uint32_t converted = htonl(timer);
 
-    int status;
-    if (waitpid(p->pid, &status, WCONTINUED) > 0) {
-        if (!WIFEXITED(status) || WEXITSTATUS(status) == 127)
-            exit(1);
+    if (p->pid == 0) {
+        dup2(p->parent_fd[READ_END], STDIN_FILENO);
+        dup2(p->child_fd[WRITE_END], STDOUT_FILENO);
+        printf("IN 0\n");
+    }
+    else {
+        write(p->parent_fd[WRITE_END], &converted, sizeof(converted));
+
+        // send signal to process
+        kill(p->pid, SIGCONT);
+
+        char read_buffer[1];
+        read(p->child_fd[READ_END], read_buffer, sizeof(read_buffer));
+        long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
+        if (read_buffer[0] != endian_arr[lsb]) {
+            fprintf(stderr,
+                    "ERROR - continue_process: process %s differs in read and written byte\n",
+                    p->name);
+            fprintf(stderr, "written    : 0x%x\n", endian_arr[lsb]);
+            fprintf(stderr, "read buffer: 0x%x\n", read_buffer[0]);
+            exit(2);
+        }
+    }
+    return 0;
+}
+
+
+/**
+ * Suspend process.
+ * @param p     pseudo-process, or metadata of the real process
+ * @param timer the current time
+ * @return      0 if successful, and otherwise if not
+ */
+int suspend_process(process_t* p, uint32_t timer) {
+
+    // convert the value to big endian byte ordering
+    char endian_arr[NUM_ENDIAN_BYTES];
+    big_endian(endian_arr, timer);
+    uint32_t converted = htonl(timer);
+
+    // pipping
+    int parent_fd[2];
+    int child_fd[2];
+    pipe(parent_fd);
+    pipe(child_fd);
+
+    if (p->pid == 0) {
+        dup2(parent_fd[READ_END], STDIN_FILENO);
+        dup2(child_fd[WRITE_END], STDOUT_FILENO);
+        printf("IN 0\n");
+    }
+    else {
+        write(parent_fd[WRITE_END], &converted, sizeof(converted));
+
+        // send signal to process
+        kill(p->pid, SIGTSTP);
+        int status;
+        waitpid(p->pid, &status, WUNTRACED);
+        if (WIFEXITED(status)) {
+
+            char read_buffer[1];
+            read(child_fd[READ_END], read_buffer, sizeof(read_buffer));
+            long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
+            if (read_buffer[0] != endian_arr[lsb]) {
+                fprintf(stderr,
+                        "ERROR - suspend_process: process %s differs in read and written byte\n",
+                        p->name);
+                fprintf(stderr, "written    : 0x%x\n", endian_arr[lsb]);
+                fprintf(stderr, "read buffer: 0x%x\n", read_buffer[0]);
+                exit(2);
+            }
+        }
     }
     return 0;
 }
@@ -132,8 +164,35 @@ int continue_process(process_t* p, uint32_t timer) {
  * @param p     pseudo-process, or metadata of the real process
  * @return      0 if successful, and otherwise if not
  */
-int terminate_process(process_t* p) {
-    kill(p->pid, SIGTERM);
+int terminate_process(process_t* p, uint32_t timer) {
+
+    // convert the value to big endian byte ordering
+    char endian_arr[NUM_ENDIAN_BYTES];
+    big_endian(endian_arr, timer);
+    uint32_t converted = htonl(timer);
+
+    if (p->pid == 0) {
+        dup2(p->parent_fd[READ_END], STDIN_FILENO);
+        dup2(p->child_fd[WRITE_END], STDOUT_FILENO);
+    }
+    else {
+        write(p->parent_fd[WRITE_END], &converted, sizeof(converted));
+
+        // send signal to process
+        kill(p->pid, SIGTERM);
+
+        char read_buffer[1];
+        read(p->child_fd[READ_END], read_buffer, sizeof(read_buffer));
+        long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
+        if (read_buffer[0] != endian_arr[lsb]) {
+            fprintf(stderr,
+                    "ERROR - terminate_process: process %s differs in read and written byte\n",
+                    p->name);
+            fprintf(stderr, "written    : 0x%x\n", endian_arr[lsb]);
+            fprintf(stderr, "read buffer: 0x%x\n", read_buffer[0]);
+            exit(2);
+        }
+    }
     return 0;
 }
 

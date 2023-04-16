@@ -8,3 +8,7 @@ process
 cmake-build-debug
 CMakeLists.txt
 .gitlab-ci.yml
+cases/10-generated-tests/
+generated-tests/
+log.txt
+

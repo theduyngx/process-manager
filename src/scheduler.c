@@ -73,11 +73,11 @@ void SRTN_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum) {
 void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure rq_type) {
     // error handling
     if (buffer == NULL || buffer->node == NULL) {
-        fprintf(stderr, "ERROR - SJF_scheduler: null buffer\n");
+        fprintf(stderr, "ERROR - nonpreemptive_scheduler: null buffer\n");
         exit(1);
     }
     if (mem == NULL) {
-        fprintf(stderr, "ERROR - SJF_scheduler: null memory\n");
+        fprintf(stderr, "ERROR - nonpreemptive_scheduler: null memory\n");
         exit(1);
     }
 
@@ -109,6 +109,7 @@ void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantu
 
         // otherwise, we run the current process
         else {
+            continue_process(running, timer);
             timer += quantum;
 
             // job finishes within given quantum
@@ -141,11 +142,11 @@ void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantu
 void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, enum structure rq_type) {
     // error handling
     if (buffer == NULL || buffer->node == NULL) {
-        fprintf(stderr, "ERROR - SJF_scheduler: null buffer\n");
+        fprintf(stderr, "ERROR - preemptive_scheduler: null buffer\n");
         exit(1);
     }
     if (mem == NULL) {
-        fprintf(stderr, "ERROR - SJF_scheduler: null memory\n");
+        fprintf(stderr, "ERROR - preemptive_scheduler: null memory\n");
         exit(1);
     }
 
@@ -181,10 +182,10 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, 
             if (running == NULL) {
                 running = extract(ready_queue);
                 running->status = RUNNING;
-                // continue process
-//                continue_process(running, timer);
                 print_running(timer, running);
             }
+            // continue process
+            continue_process(running, timer);
             int completed = running->time_left <= quantum;
             timer += quantum;
 
@@ -268,12 +269,12 @@ void finish_process(process_t** running, memory_t* mem, process_t** finished, in
         exit(3);
     }
     // terminate real process
-//    terminate_process(*running);
-
-    print_finished(timer, *running, proc_remaining);
     (*running)->status = FINISHED;
     (*running)->completed_time = timer;
     finished[(*index)++] = *running;
+//    terminate_process(*running, timer);
+
+    print_finished(timer, *running, proc_remaining);
     *running = NULL;
 
 }

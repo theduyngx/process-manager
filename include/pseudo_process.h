@@ -23,6 +23,8 @@ enum status {
 // pseudo-process data structure
 struct process {
     pid_t pid;
+    int *parent_fd;
+    int *child_fd;
     char *name;
     uint32_t arrival;
     uint32_t service_time;

@@ -29,6 +29,8 @@ process_t* process_init(const char *name, uint32_t arrival, uint32_t service_tim
     p->time_left = p->service_time;
     p->completed_time = -1;
     p->size = size;
+    p->parent_fd = (int*) malloc(2 * sizeof(int));
+    p->child_fd = (int*) malloc(2 * sizeof(int));
     assert(p);
     return p;
 }
