@@ -85,7 +85,6 @@ int continue_process(process_t* p, uint32_t timer) {
     if (p->pid == 0) {
         dup2(p->parent_fd[READ_END], STDIN_FILENO);
         dup2(p->child_fd[WRITE_END], STDOUT_FILENO);
-        printf("IN 0\n");
     }
     else {
         write(p->parent_fd[WRITE_END], &converted, sizeof(converted));
@@ -125,7 +124,6 @@ int suspend_process(process_t* p, uint32_t timer) {
     if (p->pid == 0) {
         dup2(p->parent_fd[READ_END], STDIN_FILENO);
         dup2(p->child_fd[WRITE_END], STDOUT_FILENO);
-        printf("IN 0\n");
     }
     else {
         write(p->parent_fd[WRITE_END], &converted, sizeof(converted));
@@ -175,18 +173,9 @@ int terminate_process(process_t* p, uint32_t timer, char sha[NUM_SHA_BYTES+1]) {
         // send signal to process
         kill(p->pid, SIGTERM);
 
+        // store sha hashed value
         sha[NUM_SHA_BYTES] = '\0';
         read(p->child_fd[READ_END], sha, NUM_SHA_BYTES);
-//        printf("%s\n", sha);
-//        long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
-//        if (read_buffer[0] != endian_arr[lsb]) {
-//            fprintf(stderr,
-//                    "ERROR - terminate_process: process %s differs in read and written byte\n",
-//                    p->name);
-//            fprintf(stderr, "written    : 0x%x\n", endian_arr[lsb]);
-//            fprintf(stderr, "read buffer: 0x%x\n", read_buffer[0]);
-//            exit(2);
-//        }
     }
     return 0;
 }

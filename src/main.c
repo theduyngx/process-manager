@@ -15,6 +15,7 @@
 
 #define INLINE_COUNT 4
 #define MAX_NAME_LEN 8
+#define IMPLEMENTS_REAL_PROCESS
 
 
 /**
