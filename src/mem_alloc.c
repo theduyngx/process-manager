@@ -167,16 +167,6 @@ int deallocate_memory(memory_t* mem, process_t* p) {
     int found = FAILURE;
     memseg_t* seg = mem->segments;
     for (int i=0; i < mem->num_segments; i++) {
-
-        if (seg->state == PROCESS && seg->process == p) {
-            found = SUCCESS;
-
-            // making it a hole
-            seg->state = HOLE;
-            mem->used -= seg->process->size;
-            seg->process = NULL;
-        }
-
         if (seg->state == PROCESS && seg->process == p) {
             found = SUCCESS;
 
@@ -200,7 +190,6 @@ int deallocate_memory(memory_t* mem, process_t* p) {
 
             // merging preceding block
             memseg_t* prev = seg->prev;
-//            if (prev != NULL) assert(prev->next == seg);
             if (prev != NULL && prev->state == HOLE) {
                 prev->size += seg->size;
                 prev->next = seg->next;
@@ -211,18 +200,6 @@ int deallocate_memory(memory_t* mem, process_t* p) {
                 (mem->num_segments)--;
                 free(seg);
             }
-
-            ///
-//            else {
-//                printf("%p %d %d\n", seg, seg->state, seg->size);
-//                if (prev != NULL)
-//                    printf("%p %d %d\n", prev, prev->state, prev->size);
-//                else
-//                    printf("%p\n", prev);
-//            }
-            ///
-
-
             break;
         }
         seg = seg->next;

@@ -190,7 +190,6 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, 
                 print_running(timer, running);
             }
             // continue process
-//            printf("IN PREEMPTION\n");
             continue_process(running, timer);
             int completed = running->time_left <= quantum;
             timer += quantum;
@@ -203,10 +202,7 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, 
         }
 
         // otherwise - no process running nor any process in ready queue
-        else {
-            timer += quantum;
-//            printf("%p \n", running);
-        }
+        else timer += quantum;
         size_condition = buffer->size > 0 || input_queue->size > 0 || ready_queue->size > 0;
     }
     // print statistics
@@ -241,10 +237,6 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
         num_enqueued++;
     }
 
-    ///
-//    printf("%d %d %d\n", buffer->size, input_queue->size, init_size + num_enqueued);
-    ///
-
     // we iterate through input queue and insert each process to the ready queue
     for (int j=0; j < init_size + num_enqueued; j++) {
         process_t* p = input_queue->node->process;
@@ -252,22 +244,8 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
         // memory allocation - success means getting pushed to input queue
         // otherwise either wait, or process too expensive and must be killed
         unsigned int assigned_base;
-        if (allocate_memory(mem, p, &assigned_base) == FAILURE) {
-//            printf("%d\n", mem->num_segments);
-//            memseg_t* seg = mem->segments;
-//            printf("Forward way:\n");
-//            for (int i=0; i < mem->num_segments; i++) {
-//                printf("State: %d; Size: %d\n", seg->state, seg->size);
-//                seg = seg->next;
-//            }
-//            printf("\nBackward way:\n");
-//            for (int i = mem->num_segments - 1; i >= 0; i--) {
-//                printf("State: %d; Size: %d\n", seg->state, seg->size);
-//                seg = seg->prev;
-//            }
-//            printf("\n");
+        if (allocate_memory(mem, p, &assigned_base) == FAILURE)
             continue;
-        }
         if (mem->requirement != INF)
             print_ready(timer, p, assigned_base);
         dequeue(input_queue);
