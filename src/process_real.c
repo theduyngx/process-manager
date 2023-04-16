@@ -122,19 +122,13 @@ int suspend_process(process_t* p, uint32_t timer) {
     big_endian(endian_arr, timer);
     uint32_t converted = htonl(timer);
 
-    // pipping
-    int parent_fd[2];
-    int child_fd[2];
-    pipe(parent_fd);
-    pipe(child_fd);
-
     if (p->pid == 0) {
-        dup2(parent_fd[READ_END], STDIN_FILENO);
-        dup2(child_fd[WRITE_END], STDOUT_FILENO);
+        dup2(p->parent_fd[READ_END], STDIN_FILENO);
+        dup2(p->child_fd[WRITE_END], STDOUT_FILENO);
         printf("IN 0\n");
     }
     else {
-        write(parent_fd[WRITE_END], &converted, sizeof(converted));
+        write(p->parent_fd[WRITE_END], &converted, sizeof(converted));
 
         // send signal to process
         kill(p->pid, SIGTSTP);
@@ -143,7 +137,7 @@ int suspend_process(process_t* p, uint32_t timer) {
         if (WIFEXITED(status)) {
 
             char read_buffer[1];
-            read(child_fd[READ_END], read_buffer, sizeof(read_buffer));
+            read(p->child_fd[READ_END], read_buffer, sizeof(read_buffer));
             long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
             if (read_buffer[0] != endian_arr[lsb]) {
                 fprintf(stderr,
@@ -181,9 +175,12 @@ int terminate_process(process_t* p, uint32_t timer) {
         // send signal to process
         kill(p->pid, SIGTERM);
 
-        char read_buffer[1];
-        read(p->child_fd[READ_END], read_buffer, sizeof(read_buffer));
-        long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
+        int NUM_SHA_BYTES = 64;
+        char sha[NUM_SHA_BYTES+1];
+        sha[NUM_SHA_BYTES] = '\0';
+        read(p->child_fd[READ_END], sha, NUM_SHA_BYTES);
+//        printf("%s\n", sha);
+//        long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
 //        if (read_buffer[0] != endian_arr[lsb]) {
 //            fprintf(stderr,
 //                    "ERROR - terminate_process: process %s differs in read and written byte\n",

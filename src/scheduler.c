@@ -169,7 +169,7 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, 
         // preemption
         if (ready_queue->size > 0 && running != NULL) {
             // suspending process
-//            suspend_process(running, timer);
+            suspend_process(running, timer);
 
             running->status = READY;
             insert(ready_queue, running);
