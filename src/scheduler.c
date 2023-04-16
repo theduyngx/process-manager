@@ -9,7 +9,7 @@
 #include "queue.h"
 #include "scheduler.h"
 
-//#include "process_real.h"
+#include "process_real.h"
 
 
 /**
@@ -246,7 +246,7 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
         insert(ready_queue, p);
 
         // create a real process
-//        create_process(p, timer);
+        create_process(p, timer);
     }
 }
 

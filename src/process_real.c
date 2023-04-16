@@ -29,15 +29,16 @@ int create_process(process_t* p, uint32_t timer) {
     char* PATH = "./process";
 
     // convert the value to big endian byte ordering
-    int ENDIAN_BYTE_SIZE = 4;
-    char endian_arr[ENDIAN_BYTE_SIZE];
+    char endian_arr[NUM_ENDIAN_BYTES];
     big_endian(endian_arr, timer);
+    uint32_t converted = htonl(timer);
 
     // forking and pipping
-    int fd[2];
-    char read_buffer[ENDIAN_BYTE_SIZE];
+    int parent_fd[2];
+    int child_fd[2];
+    pipe(parent_fd);
+    pipe(child_fd);
     pid_t curr_id = fork();
-    pipe(fd);
 
     // fork error
     if (curr_id == -1) {
@@ -45,35 +46,32 @@ int create_process(process_t* p, uint32_t timer) {
         exit(1);
     }
 
-    // child process
+    // process program - child
     else if (curr_id == 0) {
-        p->pid = getpid();
-        dup2(fd[WRITE_END], STDIN_FILENO);
-        ////
-        close(fd[READ_END]);
-        close(fd[WRITE_END]);
-        ////
-        char* args[] = {PATH, p->name, "-v", NULL};
+        dup2(parent_fd[READ_END], STDIN_FILENO);
+        dup2(child_fd[WRITE_END], STDOUT_FILENO);
+        char* args[] = {PATH, p->name, NULL};
         execv(PATH, args);
-        write(fd[WRITE_END], endian_arr, ENDIAN_BYTE_SIZE);
     }
 
-    // parent process
+    // allocate program - parent
     else {
-        dup2(fd[READ_END], STDOUT_FILENO);
-        ////
-        close(fd[READ_END]);
-        close(fd[WRITE_END]);
-        ////
-        read(fd[READ_END], read_buffer, ENDIAN_BYTE_SIZE);
-        long unsigned int lsb = ENDIAN_BYTE_SIZE - 1;
-        if (read_buffer[lsb] != endian_arr[lsb]) {
+        write(parent_fd[WRITE_END], &converted, sizeof(converted));
+        char read_buffer[1];
+        read(child_fd[READ_END], read_buffer, sizeof(read_buffer));
+        long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
+        if (read_buffer[0] != endian_arr[lsb]) {
             fprintf(stderr,
                     "ERROR - create_process: process %s differs in read and written byte\n",
                     p->name);
-            printf("%x %x \n", endian_arr[lsb], read_buffer[lsb]);
+            printf("%x %x \n", (&converted)[lsb], read_buffer[0]);
             exit(2);
         }
+        p->pid = curr_id;
+
+        // temporarily terminate process
+        kill(p->pid, SIGTERM);
+
     }
     return 0;
 }
@@ -145,7 +143,7 @@ int terminate_process(process_t* p) {
  * @param order big endian byte ordering
  * @param value the integer
  */
-void big_endian(char order[4], uint32_t value) {
+void big_endian(char order[NUM_ENDIAN_BYTES], uint32_t value) {
     uint32_t converted = htonl(value);
     *(uint32_t*) order = converted;
 }
