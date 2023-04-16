@@ -272,7 +272,7 @@ void finish_process(process_t** running, memory_t* mem, process_t** finished, in
     (*running)->status = FINISHED;
     (*running)->completed_time = timer;
     finished[(*index)++] = *running;
-//    terminate_process(*running, timer);
+    terminate_process(*running, timer);
 
     print_finished(timer, *running, proc_remaining);
     *running = NULL;

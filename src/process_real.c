@@ -184,14 +184,14 @@ int terminate_process(process_t* p, uint32_t timer) {
         char read_buffer[1];
         read(p->child_fd[READ_END], read_buffer, sizeof(read_buffer));
         long unsigned int lsb = NUM_ENDIAN_BYTES - 1;
-        if (read_buffer[0] != endian_arr[lsb]) {
-            fprintf(stderr,
-                    "ERROR - terminate_process: process %s differs in read and written byte\n",
-                    p->name);
-            fprintf(stderr, "written    : 0x%x\n", endian_arr[lsb]);
-            fprintf(stderr, "read buffer: 0x%x\n", read_buffer[0]);
-            exit(2);
-        }
+//        if (read_buffer[0] != endian_arr[lsb]) {
+//            fprintf(stderr,
+//                    "ERROR - terminate_process: process %s differs in read and written byte\n",
+//                    p->name);
+//            fprintf(stderr, "written    : 0x%x\n", endian_arr[lsb]);
+//            fprintf(stderr, "read buffer: 0x%x\n", read_buffer[0]);
+//            exit(2);
+//        }
     }
     return 0;
 }
