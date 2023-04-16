@@ -1,3 +1,10 @@
+/*
+ * Author  : The Duy Nguyen - 1100548
+ * File    : process_real.c
+ * Purpose : Functions related to real processes. It is not responsible for creating, continuing,
+ *           suspending, and terminating real processes.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,12 +17,12 @@
 #include "process_real.h"
 
 
-
-void big_endian(char order[4], uint32_t value) {
-    uint32_t converted = htonl(value);
-    *(uint32_t*) order = converted;
-}
-
+/**
+ * Create a real process. It reads the timer in big endian byte ordering to the process.
+ * @param p     pseudo-process, or metadata of the real process
+ * @param timer the current time
+ * @return      0 if successful, and otherwise if not
+ */
 int create_process(process_t* p, uint32_t timer) {
     int READ_END = 0;
     int WRITE_END = 1;
@@ -40,19 +47,24 @@ int create_process(process_t* p, uint32_t timer) {
 
     // child process
     else if (curr_id == 0) {
+        p->pid = getpid();
         dup2(fd[WRITE_END], STDIN_FILENO);
-        char* args[] = {PATH, p->name, NULL};
+        ////
+        close(fd[READ_END]);
+        close(fd[WRITE_END]);
+        ////
+        char* args[] = {PATH, p->name, "-v", NULL};
         execv(PATH, args);
         write(fd[WRITE_END], endian_arr, ENDIAN_BYTE_SIZE);
-        exit(0);
     }
 
     // parent process
-    dup2(fd[READ_END], STDOUT_FILENO);
-    int status;
-    if (waitpid(curr_id, &status, 0) > 0) {
-        if (! WIFEXITED(status) || WEXITSTATUS(status) == 127)
-            exit(1);
+    else {
+        dup2(fd[READ_END], STDOUT_FILENO);
+        ////
+        close(fd[READ_END]);
+        close(fd[WRITE_END]);
+        ////
         read(fd[READ_END], read_buffer, ENDIAN_BYTE_SIZE);
         long unsigned int lsb = ENDIAN_BYTE_SIZE - 1;
         if (read_buffer[lsb] != endian_arr[lsb]) {
@@ -67,6 +79,12 @@ int create_process(process_t* p, uint32_t timer) {
 }
 
 
+/**
+ * Suspend process.
+ * @param p     pseudo-process, or metadata of the real process
+ * @param timer the current time
+ * @return      0 if successful, and otherwise if not
+ */
 int suspend_process(process_t* p, uint32_t timer) {
     char* endian_arr = (char*) &timer;
     int fd[2];
@@ -76,12 +94,22 @@ int suspend_process(process_t* p, uint32_t timer) {
     read(fd[0], read_buffer, sizeof(read_buffer));
 
     kill(p->pid, SIGSTOP);
-    int w_status;
-    pid_t w = waitpid(p->pid, &w_status, WUNTRACED);
+
+    int status;
+    if (waitpid(p->pid, &status, WUNTRACED) > 0) {
+        if (!WIFEXITED(status) || WEXITSTATUS(status) == 127)
+            exit(1);
+    }
     return 0;
 }
 
 
+/**
+ * Continue a process.
+ * @param p     pseudo-process, or metadata of the real process
+ * @param timer the current time
+ * @return      0 if successful, and otherwise if not
+ */
 int continue_process(process_t* p, uint32_t timer) {
     char* endian_arr = (char*) &timer;
     int fd[2];
@@ -91,12 +119,33 @@ int continue_process(process_t* p, uint32_t timer) {
     read(fd[0], read_buffer, sizeof(read_buffer));
 
     kill(p->pid, SIGCONT);
-    int w_status;
-    pid_t w = waitpid(p->pid, &w_status, WUNTRACED);
+
+    int status;
+    if (waitpid(p->pid, &status, WCONTINUED) > 0) {
+        if (!WIFEXITED(status) || WEXITSTATUS(status) == 127)
+            exit(1);
+    }
     return 0;
 }
 
 
-int process_terminate() {
+/**
+ * Terminate a process.
+ * @param p     pseudo-process, or metadata of the real process
+ * @return      0 if successful, and otherwise if not
+ */
+int terminate_process(process_t* p) {
+    kill(p->pid, SIGTERM);
     return 0;
+}
+
+
+/**
+ * Convert an unsigned, 32-bit integer to its big endian byte ordering.
+ * @param order big endian byte ordering
+ * @param value the integer
+ */
+void big_endian(char order[4], uint32_t value) {
+    uint32_t converted = htonl(value);
+    *(uint32_t*) order = converted;
 }

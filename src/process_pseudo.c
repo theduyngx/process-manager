@@ -1,7 +1,9 @@
 /*
  * Author  : The Duy Nguyen - 1100548
- * File    : pseudo_process.c
- * Purpose : Functions related to pseudo-processes.
+ * File    : process_pseudo.c
+ * Purpose : Functions related to pseudo-processes. Pseudo-processes are essentially metadata holder
+ *           for real processes. Hence it is not responsible for creating, continuing, suspending, or
+ *           terminating real processes.
  */
 
 #include <stdio.h>
@@ -28,17 +30,6 @@ process_t* process_init(const char *name, uint32_t arrival, uint32_t service_tim
     p->completed_time = -1;
     p->size = size;
     assert(p);
-
-    // not sure if we need this - but after this step we must read in the Big Endian byte ordering
-    // probably pipe (using dup2)
-    // recall that in dup2 we must use pipe to create a piped file descriptor, and use dup2 to read in
-    // the stdin for a process and its stdout
-
-    // apparently, in the specs it says we must read the 32 bit simulation time of when the process is
-    // created, which is probably our uint32_t timer (the current time that is) - in Big Endian order
-
-    // finally, we use fd[1] which is the piped stdout to read 1 byte (however that works) from it to
-    // compare and make sure that it is identical to our stdin least significant bits.
     return p;
 }
 

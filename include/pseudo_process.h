@@ -1,7 +1,9 @@
 /*
  * Author  : The Duy Nguyen - 1100548
- * File    : pseudo_process.h
- * Purpose : Header file for pseudo process C file.
+ * File    : process_pseudo.h
+ * Purpose : Header file for pseudo process C file. Pseudo-processes are essentially metadata holder
+ *           for real processes. Hence it is not responsible for creating, continuing, suspending, or
+ *           terminating real processes.
  */
 
 #ifndef PROJECT1_PSEUDO_PROCESS_H

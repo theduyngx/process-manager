@@ -9,7 +9,7 @@
 #include "queue.h"
 #include "scheduler.h"
 
-#include "process_real.h"
+//#include "process_real.h"
 
 
 /**
@@ -86,10 +86,9 @@ void nonpreemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantu
     ready_queue_t* ready_queue = ready_queue_init(rq_type);
     uint32_t timer = 0;
 
-    /// finished processes
+    /// metadata of finished processes
     process_t* finished[buffer->size];
     int index = 0;
-    ///
 
     process_t* running = NULL;
     int size_condition = 1;
@@ -155,10 +154,9 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, 
     ready_queue_t* ready_queue = ready_queue_init(rq_type);
     uint32_t timer = 0;
 
-    /// finished processes
+    /// metadata of finished processes
     process_t* finished[buffer->size];
     int index = 0;
-    ///
 
     process_t* running = NULL;
     int size_condition = 1;
@@ -169,6 +167,9 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, 
 
         // preemption
         if (ready_queue->size > 0 && running != NULL) {
+            // suspending process
+//            suspend_process(running, timer);
+
             running->status = READY;
             insert(ready_queue, running);
             running = NULL;
@@ -180,6 +181,8 @@ void preemptive_scheduler(queue_t* buffer, memory_t* mem, unsigned int quantum, 
             if (running == NULL) {
                 running = extract(ready_queue);
                 running->status = RUNNING;
+                // continue process
+//                continue_process(running, timer);
                 print_running(timer, running);
             }
             int completed = running->time_left <= quantum;
@@ -242,7 +245,7 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
         dequeue(input_queue);
         insert(ready_queue, p);
 
-        // write to real process
+        // create a real process
 //        create_process(p, timer);
     }
 }
@@ -264,11 +267,15 @@ void finish_process(process_t** running, memory_t* mem, process_t** finished, in
     if (deallocate_memory(mem, *running) == FAILURE) {
         exit(3);
     }
+    // terminate real process
+//    terminate_process(*running);
+
     print_finished(timer, *running, proc_remaining);
     (*running)->status = FINISHED;
     (*running)->completed_time = timer;
     finished[(*index)++] = *running;
     *running = NULL;
+
 }
 
 
