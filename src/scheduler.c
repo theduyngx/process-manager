@@ -272,9 +272,10 @@ void finish_process(process_t** running, memory_t* mem, process_t** finished, in
     (*running)->status = FINISHED;
     (*running)->completed_time = timer;
     finished[(*index)++] = *running;
-    terminate_process(*running, timer);
+    char sha[NUM_SHA_BYTES+1];
+    terminate_process(*running, timer, sha);
 
-    print_finished(timer, *running, proc_remaining);
+    print_finished(timer, *running, proc_remaining, sha);
     *running = NULL;
 
 }
@@ -315,8 +316,9 @@ void print_running(uint32_t timer, process_t* p) {
  * @param p               the finished process
  * @param proc_remaining  number of remaining process to be executed
  */
-void print_finished(uint32_t timer, process_t* p, int proc_remaining) {
+void print_finished(uint32_t timer, process_t* p, int proc_remaining, char sha[NUM_SHA_BYTES+1]) {
     printf("%u,FINISHED,process_name=%s,proc_remaining=%d\n", timer, p->name, proc_remaining);
+//    printf("%u,FINISHED,process_name=%s,sha=%s\n", timer, p->name, sha);
 }
 
 

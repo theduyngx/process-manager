@@ -11,6 +11,7 @@
 
 #include "mem_alloc.h"
 #include "ready_queue.h"
+#include "process_real.h"
 
 /* Nonpreemptive schedulers */
 __attribute__((unused)) __attribute__((unused))
@@ -35,7 +36,7 @@ void update_queues(queue_t* buffer, memory_t* mem, queue_t* input_queue, ready_q
 void clear_buffer(process_t* buffer[], int size);
 void print_ready(uint32_t timer, process_t* p, unsigned int base);
 void print_running(uint32_t timer, process_t* p);
-void print_finished(uint32_t timer, process_t* p, int proc_remaining);
+void print_finished(uint32_t timer, process_t* p, int proc_remaining, char sha[NUM_SHA_BYTES+1]);
 void print_statistics(process_t* all_processes[], int num_process, uint32_t makespan);
 void finish_process(process_t** running, memory_t* mem, process_t** finished, int *index,
                     uint32_t timer, int proc_remaining);

@@ -158,7 +158,7 @@ int suspend_process(process_t* p, uint32_t timer) {
  * @param p     pseudo-process, or metadata of the real process
  * @return      0 if successful, and otherwise if not
  */
-int terminate_process(process_t* p, uint32_t timer) {
+int terminate_process(process_t* p, uint32_t timer, char sha[NUM_SHA_BYTES+1]) {
 
     // convert the value to big endian byte ordering
     char endian_arr[NUM_ENDIAN_BYTES];
@@ -175,8 +175,6 @@ int terminate_process(process_t* p, uint32_t timer) {
         // send signal to process
         kill(p->pid, SIGTERM);
 
-        int NUM_SHA_BYTES = 64;
-        char sha[NUM_SHA_BYTES+1];
         sha[NUM_SHA_BYTES] = '\0';
         read(p->child_fd[READ_END], sha, NUM_SHA_BYTES);
 //        printf("%s\n", sha);
